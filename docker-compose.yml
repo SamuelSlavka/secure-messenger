@@ -47,13 +47,13 @@ volumes:
     driver: local
     driver_opts:
       type: none
-      device: /home/rpi/node_project/views/
+      device: /home/rpi/slavkaone/views/
       o: bind
   dhparam:
     driver: local
     driver_opts:
       type: none
-      device: /home/rpi/node_project/dhparam/
+      device: /home/rpi/slavkaone/dhparam/
       o: bind
 
 networks:
