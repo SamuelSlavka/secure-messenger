@@ -14,32 +14,44 @@ app.get('/', function(req, res){
 });
 
 
-app.get('/:name', async function(req, res, next){
-	var name = req.params.name;
-	var cont = await searchitem(name);
-	res.send(cont);
+app.get('/:val', async function(req, res, next){
+	var cont = await searchitem(req.params.val);
+	result = [];
+	cont.forEach(element => {
+		result.push(element.replace(/[\n\r]/g,' '))
+	});
+	
+	res.send(result);
 });
   
-app.get('/:name/heading', async function(req, res, next){
-	var name = req.params.name;
-	res.send( await getHeading(name));
-});
 
 //execute search in wikipedia
 async function searchitem(str)
 {
 	try {
 		const { data } = await axios.get(
-			'https://en.wikipedia.org/w/index.php?search='+str+'&title=Special%3ASearch&fulltext=Search&ns0=1'
+			'https://en.wikipedia.org/w/index.php?search='+str+'&title=Special:Search&profile=advanced&fulltext=1&advancedSearch-current={}&ns0=1'
 		);
-		const $ = cheerio.load(data);
+		var $ = cheerio.load(data);
 		var result = [];
-		$('#mw-content-text')
-		//$('p.mw-empty-elt').remove();
-		if ($('p.mw-search-nonefound') != ''){
+		$('div.mw-parser-output:empty').remove();
+		$('p.mw-empty-elt').remove();
+		
+		if ($('p.mw-search-exists') != ''){
+			result = await getContents(str);
+		}
+		else if ($('p.mw-search-nonefound') != ''){
 			result.push($('p.mw-search-nonefound').text());    
 		}
-		else result = await getContents(str);
+		else {
+			if ($('div.searchdidyoumean') != '')
+				result.push($('div.searchdidyoumean').text());   
+			else result.push($('p.mw-search-createlink').text());    
+
+			var newterm = $('ul.mw-search-results > li.mw-search-result > div.mw-search-result-heading > a:first').text();
+			result.push( await getContents(newterm));   
+			result = result.flat(1);
+		}	
 
 		return result;
 	} catch (error) {
@@ -77,5 +89,5 @@ async function getContents(str)
 
 
 app.listen(port, function () {
-  console.log('Example app listening on port 8080!')
+  console.log('Example app listening on port 8080!');
 })
