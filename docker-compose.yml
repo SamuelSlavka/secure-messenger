@@ -1,19 +1,29 @@
 version: '3'
 
 services:
-  nodejs:
+  backend:    
     build:
-      context: .
+      context: ./backend
       dockerfile: Dockerfile
-    image: nodejs
-    container_name: nodejs
+    restart: unless-stopped
+    ports: 
+      - '8080:8080'
+    networks:
+      - app-network
+
+  frontend:
+    build: ./frontend
+    ports:
+      - '3000:3000'
+    depends_on:
+      - backend
     restart: unless-stopped
     networks:
       - app-network
 
-  webserver:
+  nginx:
     image: nginx:mainline-alpine
-    container_name: webserver
+    container_name: nginx
     restart: unless-stopped
     ports:
       - "80:80"
@@ -25,7 +35,7 @@ services:
       - certbot-var:/var/lib/letsencrypt
       - dhparam:/etc/ssl/certs
     depends_on:
-      - nodejs
+      - backend
     networks:
       - app-network
 
@@ -37,7 +47,7 @@ services:
       - certbot-var:/var/lib/letsencrypt
       - web-root:/var/www/html
     depends_on:
-      - webserver
+      - nginx
     command: certonly --webroot --webroot-path=/var/www/html --email slavka.samuel@gmail.com --agree-tos --no-eff-email --force-renewal -d slavka.one  -d www.slavka.one
 
 volumes:
@@ -47,7 +57,7 @@ volumes:
     driver: local
     driver_opts:
       type: none
-      device: /home/rpi/slavkaone/views/
+      device: /home/rpi/slavkaone/frontend/
       o: bind
   dhparam:
     driver: local

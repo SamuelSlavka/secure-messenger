@@ -7,7 +7,7 @@
   "main": "app.js",
   "repository": {
     "type": "git",
-    "url": "https://github.com/katjuell/nodejs-image-demo.git"
+    "url": "git+https://github.com/katjuell/nodejs-image-demo.git"
   },
   "keywords": [
     "nodejs",
@@ -17,6 +17,15 @@
   "dependencies": {
     "axios": "^0.21.1",
     "cheerio": "^1.0.0-rc.5",
+    "cors": "^2.8.5",
     "express": "^4.17.1"
+  },
+  "bugs": {
+    "url": "https://github.com/katjuell/nodejs-image-demo/issues"
+  },
+  "homepage": "https://github.com/katjuell/nodejs-image-demo#readme",
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
   }
 }

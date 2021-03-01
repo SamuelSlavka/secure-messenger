@@ -10,7 +10,7 @@ const port = 8080;
 
 app.get('/', function(req, res){
 	var key = req.query['api-key'];
-	res.send('hello');
+	res.send('no input');
 });
 
 
