@@ -48,7 +48,7 @@ services:
       - web-root:/var/www/html
     depends_on:
       - nginx
-    command: certonly --webroot --webroot-path=/var/www/html --email slavka.samuel@gmail.com --agree-tos --no-eff-email --force-renewal -d slavka.one  -d www.slavka.one
+    command: certonly --manual --webroot --webroot-path=/var/www/html --email slavka.samuel@gmail.com --agree-tos --no-eff-email --staging -d slavka.one  -d www.slavka.one
 
 volumes:
   certbot-etc:

@@ -14,7 +14,7 @@ app.get('/', function(req, res){
 });
 
 
-app.get('/:val', async function(req, res, next){
+app.get('/api/:val', async function(req, res, next){
 	var cont = await searchitem(req.params.val);
 	result = [];
 	cont.forEach(element => {
