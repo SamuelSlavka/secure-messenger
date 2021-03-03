@@ -6,9 +6,7 @@ using nginx revese ssl proxy
   docker-compose
 
 #### Setup:
-    ./ssl_renew.sh 
-    //todo ./ssl_create 
-    
+    ./ssl_renew.sh     
   
 #### Starting server:
     docker-compose up
