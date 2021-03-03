@@ -1,16 +1,17 @@
 const express = require('express');
 const app = express();
-
+const cors = require('cors')
 const axios = require('axios');
 const cheerio = require('cheerio');
-
 
 const path = __dirname + '/views/';
 const port = 8080;
 
+app.use(cors())
+
 app.get('/', function(req, res){
 	var key = req.query['api-key'];
-	res.send('no input');
+	res.send(JSON.stringify('no input'));
 });
 
 
@@ -89,5 +90,5 @@ async function getContents(str)
 
 
 app.listen(port, function () {
-  console.log('Example app listening on port 8080!');
+  console.log('Example app listening on port '+ port);
 })
