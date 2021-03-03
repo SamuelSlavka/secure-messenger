@@ -1,78 +1,36 @@
-import React from 'react';
+import React, { Component } from 'react'
 
-class App extends React.Component {
-	constructor(props){
-  	super(props)
-    this.state = {
-    	results: []
-    }
-    
-    this.search = this.search.bind(this)
+const initialState = { results: 'init', value: '' }
+
+export default class App extends Component {
+  state = initialState
+  timeout = null
+  search_url = "https://localhost/api/"
+  timeout_duration = 300
+
+  handleSearchChange = (e) => {
+    let value = e.target.value
+    clearTimeout(this.timeout);
+    this.setState({ value })
+    this.timeout = setTimeout(this.search, this.timeout_duration);
   }
-  search(results){
-  	this.setState({results})
+
+  search = () => {
+    // assuming your results are returned as JSON
+    fetch(`${this.search_url}${this.state.value}`, {mode:'no-cors'})
+    .then(res => res.json())
+    .then(data => this.setState({ results: data }))
+    .catch(error => this.setState({results: error }))
   }
-	render(){
-  	const { results } = this.state
-  	return (
-    	<div>
-    	  <Search onSearch={this.search} />
-        <Result {...this.state} />
-    	</div>
+
+  render() {
+    return (
+      <div>
+          <input
+            onChange={this.handleSearchChange}
+          />
+          <p> {this.state.results} </p>
+      </div>
     )
   }
 }
-
-class Search extends React.Component {
-	constructor(props){
-  	super(props);
-    this.state = {
-    	searchValue: ''
-    }
-    this.handleOnChange = this.handleOnChange.bind(this);
-  }
-  
-  componentDidMount() {
-    const apiUrl = 'https://localhost/api/'+this.state.results;
-    fetch(apiUrl)
-      .then((response) => response.json())
-      .then((data) => this.setState({result:  data}));
-  }
-
-  handleOnChange(e){
-  	this.setState({
-    	[e.target.name]: e.target.value
-    }, () => {
-    	setTimeout(() => {
-        // it can be the result from your API i just harcoded it
-        const apiUrl = 'https://localhost/api/';
-
-        fetch(apiUrl, {mode:'cors'})
-          .then((response) => response.json())
-          .then((data) => this.setState({results:data}))
-          .catch((error) => this.setState({results: error}));
-      
-        this.props.onSearch(this.state.results)
-      }, 1000)
-    })	
-  }
-  
-	render(){
-  	return (
-    	<div>
-    	  <input name="searchValue" type="text" onChange={this.handleOnChange} />
-        <p>{this.state.results}</p>
-    	</div>
-    )
-  }
-}
-
-const Result = ({results}) => {
-	return (
-  <div>
-  <p>{results}</p>
-  </div>
-  )
-}
-
-export default App;
