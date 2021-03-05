@@ -4,16 +4,13 @@ const cors = require('cors')
 const axios = require('axios');
 const cheerio = require('cheerio');
 
-const path = __dirname + '/views/';
 const port = 8080;
 
 app.use(cors())
 
 app.get('/', function(req, res){
-	var key = req.query['api-key'];
-	res.send(JSON.stringify('no input'));
+	res.send("no input");
 });
-
 
 app.get('/api/:val', async function(req, res, next){
 	var cont = await searchitem(req.params.val);

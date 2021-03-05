@@ -8,6 +8,8 @@ services:
     restart: unless-stopped
     ports: 
       - '8080:8080'
+    volumes:    
+      - certbot-etc:/etc/letsencrypt
     networks:
       - app-network
 
@@ -46,7 +48,7 @@ services:
       - web-root:/var/www/html
     depends_on:
       - nginx
-    command: certonly --manual --webroot --webroot-path=/var/www/html --email slavka.samuel@gmail.com --agree-tos --no-eff-email --staging -d slavka.one  -d www.slavka.one
+    command: certonly --webroot --webroot-path=/var/www/html --email slavka.samuel@gmail.com --agree-tos --no-eff-email --staging -d slavka.one  -d www.slavka.one
 
 volumes:
   certbot-etc:
