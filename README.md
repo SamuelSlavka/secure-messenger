@@ -2,7 +2,7 @@
 using nginx revese ssl proxy
 
 #### Dependencies:
-  64bit os
+  64bit os <br>
   docker-compose
 
 #### Setup:
