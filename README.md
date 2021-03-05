@@ -6,7 +6,8 @@ using nginx revese ssl proxy
   docker-compose
 
 #### Setup:
-  in file **docker-compose.yml** replace **--staging** with **--force-renew**
+  in file **docker-compose.yml** replace **--staging** with **--force-renew** <br>
+    
     ./ssl_renew.sh     
   
 #### Starting server:
