@@ -6,7 +6,7 @@ export default class App extends Component {
   state = initialState
   timeout = null
   search_url = "https://slavka.one/api/"
-  timeout_duration = 300
+  timeout_duration = 100
 
   handleSearchChange = (e) => {
     let value = e.target.value
@@ -15,7 +15,7 @@ export default class App extends Component {
       this.setState({ value })
       this.timeout = setTimeout(this.search, this.timeout_duration);
     }
-    else this.setState({results: "" });
+    else this.setState({results: '' });
   }
 
   search = () => {
