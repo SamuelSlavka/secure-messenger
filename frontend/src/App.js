@@ -59,7 +59,7 @@ export default class App extends Component {
           <button onClick={() => this.getDB()}>get</button>
           <button onClick={() => this.postDB()}>add</button>
           <div> 
-            {this.state.dbval.map(d => <div><p>{d.name}</p> <br /> </div>)}
+            {this.state.dbval.map(d => <div key={d._id}><p>{d.name}</p> </div>)}
           </div>
           <p>{}</p>
           </div>
