@@ -1,11 +1,12 @@
 import React, { Component } from 'react'
 
-const initialState = { results: '', value: '' }
+const initialState = { results: '', value: '', dbval: []}
 
 export default class App extends Component {
   state = initialState
   timeout = null
   search_url = "https://slavka.one/api/"
+  db_url = "https://slavka.one/db/"
   timeout_duration = 100
 
   handleSearchChange = (e) => {
@@ -22,8 +23,27 @@ export default class App extends Component {
     // assuming your results are returned as JSON
     fetch(`${this.search_url}${this.state.value}`, {mode:'no-cors'})
     .then(res => res.json())
-    .then(data => this.setState({ results: data }))
+    .then(data => this.setState({ results: data.body }))
     .catch(error => this.setState({results: "error" }))
+  }
+
+  getDB(){
+    const headers = { 'Content-Type': 'application/json' }
+    this.setState({dbval: [] });
+    fetch(this.db_url, { headers })
+        .then(response => response.json())
+        .then(data => this.setState({ dbval: this.state.dbval.concat(data.body) }))
+        .catch(error => this.setState({dbval: "error" }));
+  }
+
+  postDB(){
+    const requestOptions = {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: 'Sam Doe' })
+    };
+    fetch(this.db_url, requestOptions)
+        .catch(error => this.setState({dbval: "error" }));
   }
 
   render() {
@@ -32,7 +52,17 @@ export default class App extends Component {
           <input
             onChange={this.handleSearchChange}
           />
-          <p> {this.state.results} </p>
+          <div className='results'>
+              <p> {this.state.results} </p>
+          </div>
+          <div className='results'>
+          <button onClick={() => this.getDB()}>get</button>
+          <button onClick={() => this.postDB()}>add</button>
+          <div> 
+            {this.state.dbval.map(d => <div><p>{d.name}</p> <br /> </div>)}
+          </div>
+          <p>{}</p>
+          </div>
       </div>
     )
   }

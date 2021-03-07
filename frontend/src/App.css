@@ -36,6 +36,7 @@
     transform: rotate(360deg);
   }
 }
+
 input {
   margin-left: 10%;
   margin-right: 10%;
@@ -44,4 +45,9 @@ input {
   padding-top: 10px;
   width: 80%;
   margin-top: 20px;
+}
+
+.results {
+  margin-left: 10%;
+  margin-right: 10%;
 }

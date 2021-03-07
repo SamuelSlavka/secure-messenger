@@ -12,6 +12,8 @@ services:
       - certbot-etc:/etc/letsencrypt
     networks:
       - app-network
+    links:
+      - mongo
 
   frontend:
     build: ./frontend
@@ -50,6 +52,31 @@ services:
       - nginx
     command: certonly --webroot --webroot-path=/var/www/html --email slavka.samuel@gmail.com --agree-tos --no-eff-email --staging -d slavka.one  -d www.slavka.one
 
+  mongo:
+    image: mongo
+    ports:
+      - "27017:27017"
+    networks:
+      - app-network
+    command: mongod      
+  mongo-express:
+    image: mongo-express
+    environment:
+      - ME_CONFIG_MONGODB_SERVER=mongo
+      - ME_CONFIG_MONGODB_PORT=27017
+      - ME_CONFIG_MONGODB_ENABLE_ADMIN=true
+      - ME_CONFIG_MONGODB_AUTH_DATABASE=admin
+      - ME_CONFIG_MONGODB_AUTH_USERNAME=admin
+      - ME_CONFIG_MONGODB_AUTH_PASSWORD=admin
+      - ME_CONFIG_BASICAUTH_USERNAME=admin
+      - ME_CONFIG_BASICAUTH_PASSWORD=admin
+    depends_on:
+      - mongo
+    networks:
+      - app-network
+    ports:
+      - "8081:8081"
+
 volumes:
   certbot-etc:
   certbot-var:
@@ -57,7 +84,7 @@ volumes:
     driver: local
     driver_opts:
       type: none
-      device: /home/rpi/slavkaone/frontend/
+      device: /home/rpi/slavkaone/
       o: bind
   dhparam:
     driver: local

@@ -1,57 +1,39 @@
-const express = require('express');
-const app = express();
-const cors = require('cors')
-const axios = require('axios');
-const cheerio = require('cheerio');
-
 const port = 8080;
+const dbRetryTime = process.env.db_retry_time || 2000;
 
-app.use(cors())
+const express = require('express');
+const bodyParser = require('body-parser');
+const app = express();
+const router = require('./router');
 
-app.get('/', function(req, res){
-	res.send("no input");
-});
+const mongoose = require('mongoose');
+const MONGO_PORT = 27017;
 
-app.get('/api/:val', async function(req, res, next){
-	var cont = await getContents(req.params.val);
-	result = [];
-	cont.forEach(element => {
-		result.push(element.replace(/[\n\r]/g,' '))
-	});
-	
-	res.send(result);
-});
-  
+const mongoUri = `mongodb://mongo:${MONGO_PORT}/mongo`;
 
-//return contents of article, either first paragraph or itemize
-async function getContents(str) 
-{
-	try {		
-		const { data } = await axios.get(
-			'https://en.wikipedia.org/wiki/'+str
-		);
-		const $ = cheerio.load(data);
-
-		$('div.mw-parser-output:empty').remove();
-		$('p.mw-empty-elt').remove();
-		
-		var content = []
-		content.push($('div.mw-parser-output > p:first').text());	
-
-		if (content[0].includes('may refer to:')){
-			$('div.mw-parser-output > ul').each((_idx, el) => {
-				const item = $(el).text();
-				content.push(item);
-			});
-		}
-		
-		return content;
-	} catch (error) {		
-		return ['Wikipedia does not have an article with this exact name.'];
-	}
+let db = mongoose.connection;
+let connectWithRetry = function () {
+  return mongoose.connect(mongoUri, {
+    useUnifiedTopology: true,
+    useNewUrlParser: true
+  });
 };
 
+connectWithRetry();
 
-app.listen(port, function () {
-  console.log('Example app listening on port '+ port);
-})
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: false }));
+
+db.on('error', () => {
+	setTimeout(() => {
+		console.log('DB connection failed. Will try again.');
+
+		connectWithRetry();
+  }, dbRetryTime);
+});
+
+db.on('connected', function () {
+  app.use(router);
+
+  app.listen(port, () => console.log(`All set up. Listening on ${port}!`))
+});

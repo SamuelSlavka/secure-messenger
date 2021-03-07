@@ -1,4 +1,4 @@
-# Mongo(tbd) Express React Node 
+# Mongo Express React Node 
 using nginx revese ssl proxy
 
 #### Dependencies:
