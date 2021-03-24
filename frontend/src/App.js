@@ -40,11 +40,22 @@ export default class App extends Component {
     const requestOptions = {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name: 'Sam Doe' })
+      body: JSON.stringify({ name: 'John Doe' })
     };
     fetch(this.db_url, requestOptions)
+        .then(response => response.json())
+        .then(data => this.setState({ dbval: this.state.dbval.concat(data.status) }))
         .catch(error => this.setState({dbval: "error" }));
   }
+
+/*
+<div className='results'>
+<button onClick={() => this.getDB()}>get</button>
+<button onClick={() => this.postDB()}>add</button>
+<div> 
+  {this.state.dbval.map(d => <li>{d.name}</li>)}
+</div>
+*/
 
   render() {
     return (
@@ -54,14 +65,6 @@ export default class App extends Component {
           />
           <div className='results'>
               <p> {this.state.results} </p>
-          </div>
-          <div className='results'>
-          <button onClick={() => this.getDB()}>get</button>
-          <button onClick={() => this.postDB()}>add</button>
-          <div> 
-            {this.state.dbval.map(d => <div key={d._id}><p>{d.name}</p> </div>)}
-          </div>
-          <p>{}</p>
           </div>
       </div>
     )

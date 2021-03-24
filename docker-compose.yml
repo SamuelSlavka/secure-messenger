@@ -76,7 +76,21 @@ services:
       - app-network
     ports:
       - "8081:8081"
-
+  plex:
+    image: ghcr.io/linuxserver/plex
+    container_name: plex
+    network_mode: host
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - VERSION=docker
+      - PLEX_CLAIM= #optional
+    volumes:
+      - /mnt/mediastorage:/config
+      - /mnt/mediastorage/movies:/movies
+      - /mnt/mediastorage/books:/books
+      - /mnt/mediastorage/music:/music
+    restart: unless-stopped
 volumes:
   certbot-etc:
   certbot-var:
