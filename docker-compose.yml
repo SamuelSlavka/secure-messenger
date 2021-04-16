@@ -76,6 +76,7 @@ services:
       - app-network
     ports:
       - "8081:8081"
+      
   plex:
     image: ghcr.io/linuxserver/plex
     container_name: plex
@@ -88,6 +89,7 @@ services:
     volumes:
       - /mnt/mediastorage:/config
       - /mnt/mediastorage/movies:/movies
+      - /mnt/mediastorage/series:/series
       - /mnt/mediastorage/books:/books
       - /mnt/mediastorage/music:/music
     restart: unless-stopped

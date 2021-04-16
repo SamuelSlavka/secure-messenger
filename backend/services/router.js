@@ -8,9 +8,11 @@ const dbprefix = 'db';
 const apiprefix = 'api';
 
 
-router.get(`/${dbprefix}/`, controller.getAll);
+// proxy to api
 router.get(`/${apiprefix}/:var`, api.getAll);
-
+// progy to db service
+router.get(`/${dbprefix}/`, controller.getAll);
+// progy to db service
 router.post(`/${dbprefix}/`, controller.addNew);
 
 module.exports = router;

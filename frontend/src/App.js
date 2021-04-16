@@ -8,7 +8,7 @@ export default class App extends Component {
   search_url = "https://slavka.one/api/"
   db_url = "https://slavka.one/db/"
   timeout_duration = 100
-
+  // handles input into search bar
   handleSearchChange = (e) => {
     let value = e.target.value
     clearTimeout(this.timeout);
@@ -18,7 +18,7 @@ export default class App extends Component {
     }
     else this.setState({results: '' });
   }
-
+  // sends query to API
   search = () => {
     // assuming your results are returned as JSON
     fetch(`${this.search_url}${this.state.value}`, {mode:'no-cors'})
@@ -26,7 +26,7 @@ export default class App extends Component {
     .then(data => this.setState({ results: data.body }))
     .catch(error => this.setState({results: "error" }))
   }
-
+  // db manipulation
   getDB(){
     const headers = { 'Content-Type': 'application/json' }
     this.setState({dbval: [] });
@@ -47,16 +47,7 @@ export default class App extends Component {
         .then(data => this.setState({ dbval: this.state.dbval.concat(data.status) }))
         .catch(error => this.setState({dbval: "error" }));
   }
-
-/*
-<div className='results'>
-<button onClick={() => this.getDB()}>get</button>
-<button onClick={() => this.postDB()}>add</button>
-<div> 
-  {this.state.dbval.map(d => <li>{d.name}</li>)}
-</div>
-*/
-
+  //dynamic part of website
   render() {
     return (
       <div>

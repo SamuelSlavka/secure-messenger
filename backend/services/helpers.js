@@ -2,7 +2,7 @@ require('./model');
 
 const mongoose = require('mongoose');
 const Users = mongoose.model('users');
-
+//db services
 module.exports = {
   async getAll() {
     return await Users.find({});

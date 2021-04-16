@@ -10,7 +10,7 @@ const mongoose = require('mongoose');
 const MONGO_PORT = 27017;
 
 const mongoUri = `mongodb://mongo:${MONGO_PORT}/mongo`;
-
+//initialize database
 let db = mongoose.connection;
 let connectWithRetry = function () {
   return mongoose.connect(mongoUri, {
@@ -31,7 +31,7 @@ db.on('error', () => {
 		connectWithRetry();
   }, dbRetryTime);
 });
-
+//connect to db
 db.on('connected', function () {
   app.use(router);
 
