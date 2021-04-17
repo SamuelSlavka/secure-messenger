@@ -47,17 +47,29 @@ export default class App extends Component {
         .then(data => this.setState({ dbval: this.state.dbval.concat(data.status) }))
         .catch(error => this.setState({dbval: "error" }));
   }
+
   //dynamic part of website
   render() {
-    return (
-      <div>
+    return [
+      
+        <div className='content'>
           <input
             onChange={this.handleSearchChange}
           />
           <div className='results'>
               <p> {this.state.results} </p>
           </div>
-      </div>
-    )
+        </div>,
+
+        <footer className="footer">
+          <p>Wellcome to slavka.one</p>
+          <a href="https://github.com/SamuelSlavka/slavkaone">
+            github.com/SamuelSlavka/slavkaone
+          </a>
+        </footer>      
+
+          
+    ]
   }
 }
+
