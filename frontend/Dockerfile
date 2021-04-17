@@ -1,6 +1,6 @@
 FROM node:12.2.0-alpine as build
 # Create app directory
-WORKDIR /usr/src/app
+WORKDIR /usr/src
 # Install app dependencies
 COPY package*.json ./
 

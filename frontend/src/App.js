@@ -52,7 +52,7 @@ export default class App extends Component {
   render() {
     return [
       
-        <div className='content'>
+        <div key='0' className='content'>
           <input
             onChange={this.handleSearchChange}
           />
@@ -61,7 +61,7 @@ export default class App extends Component {
           </div>
         </div>,
 
-        <footer className="footer">
+        <footer key='1' className="footer">
           <p>Wellcome to slavka.one</p>
           <a href="https://github.com/SamuelSlavka/slavkaone">
             github.com/SamuelSlavka/slavkaone

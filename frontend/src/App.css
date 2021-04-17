@@ -37,7 +37,7 @@ input {
   flex-shrink: 0;
   display: flex;
   text-align: center;
-  background-color: tomato;
+  background-color: #2e5099;;
   color: white;
 }
 .footer p {
