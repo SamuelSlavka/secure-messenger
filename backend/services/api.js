@@ -13,7 +13,7 @@ module.exports = {
 			let verifiedLanguage = verifyLanguage(req.query.lang);
 
 			if (!verifiedLanguage.valid) {
-				res.status(400).type('application/json').send({ error: 'Wikipedia does not support ' + verifiedLanguage.lang + ' language' });
+				res.status(400).type('application/json').send({ body: 'Wikipedia does not support ' + verifiedLanguage.lang + ' language' });
 				return
 			}
 
@@ -29,7 +29,7 @@ module.exports = {
 				body: result
 			});
 		} catch (error) {
-			res.status(404).type('application/json').send({ error: 'Wikipedia does not have an article with this exact name.' })
+			res.status(404).type('application/json').send({ body: 'Wikipedia does not have an article with this exact name.' })
 		}
 	},
 	async getContents(req, res) {
