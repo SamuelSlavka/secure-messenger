@@ -2,7 +2,6 @@ html,
 body {
   height: 100%;
   font-family: sans-serif;
-  margin: 0;
 }
 
 #root {
@@ -11,16 +10,32 @@ body {
   height: 100%;
 }
 
-input {
-  margin-left: 9%;
-  margin-right: 9%;
+#input-form {
+  text-align: center;
+  padding-bottom: 20px;
+}
+
+#input-field {
+  margin-left: 2%;
+  margin-right: 2%;
   line-height: 25px;
   padding-bottom: 10px;
   padding-top: 10px;
-  width: 80%;
+  width: 70%;
   margin-top: 20px;
   padding-left: 5px;
   padding-right: 5px;
+}
+
+#submit-button {
+  margin-left: 1%;
+  margin-right: 1%;
+}
+
+.dropdown {
+  display: inline-block;
+  margin-left: 1%;
+  margin-right: 1%;
 }
 
 .results {
@@ -40,17 +55,18 @@ input {
   background-color: #2e5099;;
   color: white;
 }
-.footer p {
+
+#git-link,
+#git-link:hover,
+#git-link:active,
+#git-link:visited {
+  display: block;
   flex: 1;
-  margin:5;
+  margin:10px;
+  color: white;
 }
 
-a,
-a:hover,
-a:active,
-a:visited {
-display: block;
+.footer p {
   flex: 1;
-  margin: 15px 0px;
-  color: white;
+  margin:10px;
 }

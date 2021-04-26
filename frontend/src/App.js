@@ -1,36 +1,50 @@
 import React, { Component } from 'react'
+import 'bootstrap/dist/css/bootstrap.min.css';
+import DropdownButton from 'react-bootstrap/DropdownButton';
+import Dropdown from 'react-bootstrap/Dropdown'
 
-const initialState = { results: '', value: '', dbval: [] }
+const initialState = { results: '', value: '', qtype: 'article', dbval: [] }
 
 export default class App extends Component {
   state = initialState
   timeout = null
   search_url = "https://slavka.one/api/"
   db_url = "https://slavka.one/db/"
-  timeout_duration = 150
+  timeout_duration = 150;
+
   // handles input into search bar
-  handleSearchChange = (e) => {
-    let value = e.target.value
-    clearTimeout(this.timeout);
-    //speeds up last query
-    if (e.keyCode == 13) {
-      this.setState({ value })
-      this.search();
-    } // while typing wait a bit for next letter
-    else if (value.length > 0) {
-      this.setState({ value });
-      this.timeout = setTimeout(this.search, this.timeout_duration);
+  handleSearch = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    let value = this.state.value;
+    let url = '';
+    // while typing wait a bit for next letter
+    if (value.length > 0) {
+
+      if(this.state.qtype === 'article'){
+        url=`${this.search_url}${value}`
+        fetch(url, { mode: 'no-cors' })
+          .then(res => res.json())
+          .then(data => this.setState({ results: data.body }))
+          .catch(() => this.setState({ results: "error" }))
+      }
+      else {
+        url=`${this.search_url}${value}/${this.state.qtype}`
+        fetch(url, { mode: 'no-cors' })
+          .then(res => res.json())
+          .then(data => this.setState({ results: <pre>{JSON.stringify(data, null, 2) }</pre> }))
+          .catch(() => this.setState({ results: "error" }))
+      }
     }
     else this.setState({ results: '' });
   }
-  // sends query to API
-  search = () => {
-    // assuming your results are returned as JSON
-    fetch(`${this.search_url}${this.state.value}`, { mode: 'no-cors' })
-      .then(res => res.json())
-      .then(data => this.setState({ results: data.body }))
-      .catch(error => this.setState({ results: "error" }))
+  handleSelect = (e) => {
+    this.setState({ qtype: e });
   }
+  handleInputChange = (e) => {
+    this.setState({ value: e.target.value });
+  }
+
   // db manipulation
   getDB() {
     const headers = { 'Content-Type': 'application/json' }
@@ -53,24 +67,37 @@ export default class App extends Component {
       .catch(error => this.setState({ dbval: "error" }));
   }
 
+
   //dynamic part of website
   render() {
     return [
 
       <div key='0' className='content'>
-        <input
-          onKeyDown={this.handleSearchChange}
-        />
+
+        <form id="input-form" onSubmit={this.handleSearch}>
+          <input id="input-field" type="text" name="query" ref="wikiQuery" value={this.state.value} onChange={this.handleInputChange} /> 
+          <DropdownButton
+            title={this.state.qtype}
+            id="dropdown-basic-button"
+            onSelect={this.handleSelect}>
+            <Dropdown.Item eventKey="article">article</Dropdown.Item>
+            <Dropdown.Item eventKey="contents">contents</Dropdown.Item>
+            <Dropdown.Item eventKey="images">images</Dropdown.Item>
+          </DropdownButton>
+          <button id="submit-button" type="submit">Submit</button>
+          <br />
+
+        </form>
         <div className='results'>
-          <p> {this.state.results} </p>
+          {this.state.results}
         </div>
       </div>,
 
       <footer key='1' className="footer">
         <p>Welcome to slavka.one</p>
-        <a href="https://github.com/SamuelSlavka/slavkaone">
+        <a id="git-link" href="https://github.com/SamuelSlavka/slavkaone">
           github.com/slavkaone
-          </a>
+        </a>
       </footer>
 
 
