@@ -132,7 +132,7 @@ async function getParagraph(str, language) {
 
 		$('div.mw-parser-output:empty').remove();
 		$('p.mw-empty-elt').remove();
-		if($('#coordinates') !== '')
+		if($('#coordinates').length)
 			$('div.mw-parser-output > p:first').remove();
 
 		var content = []
