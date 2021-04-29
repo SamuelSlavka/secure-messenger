@@ -12,4 +12,4 @@ This project was bootstrapped with [Create React App](https://github.com/faceboo
 
 #### Execution:
 
-    [http://localhost:3000](http://localhost:3000) 
+    http://localhost:3000
