@@ -132,10 +132,13 @@ async function getParagraph(str, language) {
 
 		$('div.mw-parser-output:empty').remove();
 		$('p.mw-empty-elt').remove();
+		if($('#coordinates') !== '')
+			$('div.mw-parser-output > p:first').remove();
 
 		var content = []
 		content.push($('div.mw-parser-output > p:first').text());
 		//list of items
+		// TODO: may refer to: in oter languages
 		if (content[0].includes('may refer to:')) {
 			$('div.mw-parser-output > ul').each((_idx, el) => {
 				const item = $(el).text();

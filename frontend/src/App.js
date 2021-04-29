@@ -84,7 +84,7 @@ export default class App extends Component {
   recursiveContents(data, isSub, level = 1) {
     let children = [];
     if (isSub) { level++; }
-    for (let i = 0, len = data.length - 1; i < len; i++) {
+    for (let i = 0, len = data.length; i < len; i++) {
       if (typeof (data[i].subsections) === 'object') {
         children.push(
           <div key={i} className={"filter-group level-" + (level)}>
@@ -94,9 +94,9 @@ export default class App extends Component {
         );
       } else { // No subcontents
         children.push(
-          <span key={i}>
-            {data[i].index, data[i].name}
-          </span>)
+          <div key={i} className="filter-heading">
+            {data[i].index} {data[i].name}
+          </div>)
       }
     }
     return children;
