@@ -1,9 +1,10 @@
 # Mongo Express React Node 
-using nginx revese ssl proxy
+using SSL and nginx revese proxy
 
 #### Dependencies:
   64bit os <br>
-  docker-compose
+  docker-compose <br>
+  docker
 
 #### Setup:
   in file **docker-compose.yml** replace **--staging** with **--force-renew** <br>
