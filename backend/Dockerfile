@@ -1,17 +1,13 @@
-FROM node:10-alpine
+# syntax=docker/dockerfile:1
 
-RUN mkdir -p /home/node/app/node_modules && chown -R node:node /home/node/app
+FROM python:3.8-slim-buster
 
-WORKDIR /home/node/app
+WORKDIR /app
 
-COPY package*.json ./
+COPY requirements.txt requirements.txt
+RUN pip3 install -r requirements.txt
 
-USER node
+COPY . .
 
-RUN npm install
+CMD [ "python3", "-m" , "flask", "run", "--host=0.0.0.0"]
 
-COPY --chown=node:node . .
-
-EXPOSE 8080
-
-CMD [ "node", "app.js" ]
