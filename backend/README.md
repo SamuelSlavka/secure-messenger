@@ -1,10 +1,13 @@
-# WAPproj2
+# Flask backend
 
 #### Setup:
-    npm i
+    python3 -m venv auth
+    source auth/bin/activate
+    pip install flask flask-sqlalchemy flask-login
+
   
 #### Starting server:
-    node app.js
+    flask run
   
  #### Execution:
-   http://localhost:8080/<query>
+   http://localhost:5000/<query>

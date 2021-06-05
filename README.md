@@ -1,8 +1,7 @@
-# Mongo Express React Node 
+# Web app with authentication
 using SSL and nginx revese proxy
 
 #### Dependencies:
-  64bit os <br>
   docker-compose <br>
   docker
 

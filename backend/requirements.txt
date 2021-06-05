@@ -1,3 +1,5 @@
 flask
-Flask-SQLAlchemy
-SQLAlchemy
+flask_sqlalchemy
+flask-praetorian
+flask_cors
+python-dotenv
