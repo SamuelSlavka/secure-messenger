@@ -22,7 +22,6 @@ export function Protected() {
     }
 
     fetchAuth();
-
   }, []);
   return (
     <h2>Account: {message}</h2>

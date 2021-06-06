@@ -3,3 +3,4 @@ flask_sqlalchemy
 flask-praetorian
 flask_cors
 python-dotenv
+web3

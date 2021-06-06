@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { login, useAuth } from ".";
+import { login } from ".";
 import 'bootstrap/dist/css/bootstrap.min.css';
 import Button from 'react-bootstrap/Button'
 import Form from 'react-bootstrap/Form'
@@ -9,8 +9,6 @@ export function Login() {
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const [result, setResult] = useState('');
-
-    const [logged] = useAuth();
 
     async function onSubmitClick(e) {
         e.preventDefault();

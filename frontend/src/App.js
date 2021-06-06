@@ -1,21 +1,14 @@
 import React, { Component } from 'react'
-import 'bootstrap/dist/css/bootstrap.min.css';
+import { BrowserRouter as Router, Switch, Route, Redirect, Link } from "react-router-dom";
 
-import { useAuth, logout, register } from "./auth"
+import 'bootstrap/dist/css/bootstrap.min.css';
 import Navbar from 'react-bootstrap/Navbar'
 import Nav from 'react-bootstrap/Nav'
 
-import {
-  BrowserRouter as Router,
-  Switch,
-  Route,
-  Redirect,
-  Link
-} from "react-router-dom";
-
+import { Home } from './Home';
+import { useAuth } from "./auth"
 import { Login } from './auth/Login';
 import { Protected } from './auth/Protected';
-import { Home } from './Home';
 import { Logout } from './auth/Logout';
 import { Register } from './auth/Register';
 
@@ -31,11 +24,8 @@ const PrivateRoute = ({ component: Component, ...rest }) => {
 }
 
 export default class App extends Component {
-  timeout = null
   develop_search_url = "http://127.0.0.1:5000/api/"
   search_url = "https://slavka.one/api/"
-  db_url = "https://slavka.one/db/"
-  timeout_duration = 150;
 
 
   //dynamic part of website

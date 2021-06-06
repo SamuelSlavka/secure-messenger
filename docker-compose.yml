@@ -7,7 +7,7 @@ services:
       dockerfile: Dockerfile
     restart: unless-stopped
     ports: 
-      - '8080:8080'
+      - '5000:5000'
     volumes:    
       - certbot-etc:/etc/letsencrypt
       - .:/backend/src
@@ -85,7 +85,22 @@ services:
       - /mnt/mediastorage/books:/books
       - /mnt/mediastorage/music:/music
     restart: unless-stopped
+
+  geth-rinkeby:
+    image: poktnetwork/geth:rinkeby
+    build:
+      context: /etherum
+      dockerfile: Dockerfile
+    expose:
+      - "8545"
+      - "8546"
+      - "30303"
+    volumes:                                                                 
+      - geth-rinkeby:/.rinkeby
+    command: "--rinkeby --rpc --rpcapi eth,net --rpcaddr 0.0.0.0 --rpcport 8545 --rpcvhosts=* --syncmode fast --datadir .testnet --verbosity 3"
+
 volumes:
+  geth-rinkeby: {}
   certbot-etc:
   certbot-var:
   web-root:

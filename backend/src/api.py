@@ -3,56 +3,65 @@ import flask
 import flask_sqlalchemy
 import flask_praetorian
 import flask_cors
-
-db = flask_sqlalchemy.SQLAlchemy()
-
-
 from model import User
+import etherum
 
+db = User._db
 guard = flask_praetorian.Praetorian()
 cors = flask_cors.CORS()
 
-
-# Initialize flask app for the example
+# Initialize flask app
 app = flask.Flask(__name__)
 app.debug = True
 app.config['SECRET_KEY'] = 'top secret'
 app.config['JWT_ACCESS_LIFESPAN'] = {'hours': 24}
 app.config['JWT_REFRESH_LIFESPAN'] = {'days': 30}
 
-# Initialize the flask-praetorian instance for the app
-guard.init_app(app, User)
 
-# Initialize a local database for the example
+# Token blacklist
+blacklist = set()
+
+#check if token is valid
+def is_blacklisted(jti):
+    return jti in blacklist
+
+
+# Initialize the flask-praetorian instance for the app
+guard.init_app(app, User, is_blacklisted=is_blacklisted)
+
+# Initialize a local database
 app.config['SQLALCHEMY_DATABASE_URI'] = f"sqlite:///{os.path.join(os.getcwd(), 'database.db')}"
 db.init_app(app)
 
-# Initializes CORS so that the api_tool can talk to the example app
+# Initializes CORS
 cors.init_app(app)
 
-# Set up some routes for the example
+# Set up some routes
 @app.route('/api/')
 def home():
-    return {"Hello": "World"}, 200
+    ret = etherum.get_last_transaction()
+    return ret, 200
 
 # Logs in user
 @app.route('/api/register', methods=['POST'])
 def register():    
     req = flask.request.get_json(force=True)
     _username = req.get('username', None)
-    password = req.get('password', None)
-    db.create_all()    
+    _password = req.get('password', None)
+    _address = req.get('address', None)
+    db.create_all() 
     new_user = User(
-            username=_username,
-            password=guard.hash_password(password),
+            username= _username,
+            address= _address,
+            password= guard.hash_password(_password),
             roles='operator'
     )
-    
-    if db.session.query(User).filter_by(username=_username).count() < 1:            
+
+    if db.session.query(User).filter_by(username=_username).count() < 1:
         db.session.add(new_user)
         db.session.commit()
     
-    user = guard.authenticate(_username, password)
+    user = guard.authenticate(_username, _password)
     ret = {'access_token': guard.encode_jwt_token(user)}
     return ret, 200
 
@@ -66,6 +75,14 @@ def login():
     ret = {'access_token': guard.encode_jwt_token(user)}
     return ret, 200
 
+# Disables an JWT
+@app.route('/api/logout', methods=['GET'])
+def logout():
+    token = ((flask.request.headers.get('Authorization')).split())[1]
+    data = guard.extract_jwt_token(token)
+    blacklist.add(data['jti'])
+    return flask.jsonify(message='token blacklisted ({})'.format(data))
+
 # Refreshes an existing JWT
 @app.route('/api/refresh', methods=['POST'])
 def refresh():    
@@ -74,20 +91,11 @@ def refresh():
     ret = {'access_token': new_token}
     return ret, 200
 
-# Disables an JWT
-@app.route('/api/logout', methods=['POST'])
-def refresh():    
-    old_token = request.get_data()
-    data = guard.extract_jwt_token(old_token)
-    blacklist.add(data['jti'])
-    ret = flask.jsonify(message='token blacklisted ({})'.format(req['token']))
-    return ret, 200
-
 # Protected endpoint
 @app.route('/api/protected')
 @flask_praetorian.auth_required
 def protected():
-    return {'message': f'protected endpoint (allowed user {flask_praetorian.current_user().username})'}
+    return {'message': f'protected endpoint user: {flask_praetorian.current_user().username} address: {flask_praetorian.current_user().address})'}
 
 
 # Run the example
