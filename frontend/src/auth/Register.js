@@ -3,7 +3,7 @@ import { login } from ".";
 import 'bootstrap/dist/css/bootstrap.min.css';
 import Button from 'react-bootstrap/Button'
 import Form from 'react-bootstrap/Form'
-
+import Web3 from 'web3'
 
 export function Register() {
     const [username, setUsername] = useState('');

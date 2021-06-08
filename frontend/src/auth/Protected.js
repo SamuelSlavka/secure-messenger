@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { authFetch } from ".";
+import Web3 from 'web3'
 
 export function Protected() {
   const [message, setMessage] = useState('');

@@ -15,7 +15,7 @@ export function Home() {
     fetchMyAPI()
     const interval = setInterval(() => {
       fetchMyAPI()
-    }, 4000);
+    }, 5000);
     return () => clearInterval(interval);
   }, []);
 
