@@ -55,20 +55,27 @@ services:
       - nginx
     command: certonly --webroot --webroot-path=/var/www/html --email slavka.samuel@gmail.com --agree-tos --no-eff-email --staging -d slavka.one  -d www.slavka.one
 
-  data:
-    image: postgres:latest
-    volumes:
-      - db-data:/var/lib/postgresql/data
-    command: "true"
-
   postgres:
+    image: postgres:10.5
+    restart: unless-stopped
+    environment:
+      - POSTGRES_DB=postgres
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    expose:
+      - '5432'
+    volumes: 
+      - ./postgres-data:/var/lib/postgresql/data
+      - ./sql/create_tables.sql:/docker-entrypoint-initdb.d/create_tables.sql
+    network_mode: host
+
+  
+  adminer:
+    image: adminer
     restart: always
-    image: postgres:latest
-    volumes:
-      - db-data:/var/lib/postgresql/data
     ports:
-      - "5432:5432"
-          
+      - 8080:8080
+
   plex:
     image: ghcr.io/linuxserver/plex
     container_name: plex
@@ -86,21 +93,7 @@ services:
       - /mnt/mediastorage/music:/music
     restart: unless-stopped
 
-  geth-rinkeby:
-    image: poktnetwork/geth:rinkeby
-    build:
-      context: /etherum
-      dockerfile: Dockerfile
-    expose:
-      - "8545"
-      - "8546"
-      - "30303"
-    volumes:                                                                 
-      - geth-rinkeby:/.rinkeby
-    command: "--rinkeby --rpc --rpcapi eth,net --rpcaddr 0.0.0.0 --rpcport 8545 --rpcvhosts=* --syncmode fast --datadir .testnet --verbosity 3"
-
 volumes:
-  geth-rinkeby: {}
   certbot-etc:
   certbot-var:
   web-root:

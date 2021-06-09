@@ -1,12 +1,10 @@
 import React, { useState, useLayoutEffect } from 'react';
 
-
-
 export function Home() {
   const [transaction, setTransaction] = useState('');
 
   async function fetchMyAPI() {
-    const response = await fetch('http://localhost:5000/api/');
+    const response = await fetch('http://192.168.1.11:5000/api/');
     const blocks = await response.json();
     setTransaction ( JSON.stringify(blocks, null, 2) );
   }

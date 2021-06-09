@@ -16,6 +16,17 @@ body {
   margin-right: 10%;
 }
 
+#FailReg {
+  background-color: red;
+}
+#SuccessReg {
+  background-color: green;
+}
+.regResult{
+  padding: 10px;
+  margin: 20px;
+}
+
 .input-form {
   margin: 0;
   display: flex; 

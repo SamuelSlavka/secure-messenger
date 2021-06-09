@@ -3,6 +3,7 @@ import { login } from ".";
 import 'bootstrap/dist/css/bootstrap.min.css';
 import Button from 'react-bootstrap/Button'
 import Form from 'react-bootstrap/Form'
+import web3 from 'web3';
 
 
 export function Login() {
@@ -19,7 +20,7 @@ export function Login() {
         };
         console.log(opts);
 
-        const response = await fetch('http://localhost:5000/api/login', {
+        const response = await fetch('http://192.168.1.11:5000/api/login', {
             method: 'post',
             body: JSON.stringify(opts)
         });
@@ -28,12 +29,16 @@ export function Login() {
 
         if (token.access_token) {
             login(token);
-            console.log(token);
-            setResult("Success");
+            var CryptoJS = require("crypto-js");
+            
+            //stores for session only password for PK encription
+            const passwdKey = CryptoJS.AES.encrypt(password, web3.utils.randomHex(32));        
+            sessionStorage.setItem('passwdKey', passwdKey);     
+
+            setResult({"class":"SuccessReg","res":"Success"});
         }
         else {
-            console.log("Incorrect Username/Password");
-            setResult("Incorrect Username/Password");
+            setResult({"class":"FailReg","res":"Incorrect Username/Password"});
         }
     }
 
@@ -63,7 +68,7 @@ export function Login() {
         </Button>
     </Form>
     <div>
-        <p>{result}</p>
+        <h3 id={result.class} className="regResult"> {result.res} </h3>
     </div>
     </div >
   );

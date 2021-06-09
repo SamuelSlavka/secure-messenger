@@ -5,9 +5,11 @@ export function Logout() {
   const [message, setMessage] = useState('');
 
   useEffect(() => {
+    sessionStorage.clear();
+    
     async function fetchAuth() {
 
-      const response = await authFetch("http://localhost:5000/api/logout");
+      const response = await authFetch("http://192.168.1.11:5000/api/logout");
       const json = await response.json();
 
       if (response.status === 401) {

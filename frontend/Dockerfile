@@ -4,7 +4,12 @@ WORKDIR /usr/src
 # Install app dependencies
 COPY package*.json ./
 
-RUN npm install
+RUN apk add --no-cache --virtual .gyp \
+        python \
+        make \
+        g++ \
+    && npm install \
+    && apk del .gyp
 # Copy app source code
 COPY . .
 

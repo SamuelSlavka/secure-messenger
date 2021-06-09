@@ -24,10 +24,7 @@ const PrivateRoute = ({ component: Component, ...rest }) => {
 }
 
 export default class App extends Component {
-  develop_search_url = "http://127.0.0.1:5000/api/"
-  search_url = "https://slavka.one/api/"
-
-
+  
   //dynamic part of website
   render() {
     return [
