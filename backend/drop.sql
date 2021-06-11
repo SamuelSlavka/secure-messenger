@@ -1,2 +1,2 @@
 -- SQLite
- DROP TABLE user; 
+ DROP TABLE users; 

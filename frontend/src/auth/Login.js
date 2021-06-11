@@ -1,10 +1,9 @@
 import React, { useState } from 'react';
-import { login } from ".";
 import 'bootstrap/dist/css/bootstrap.min.css';
 import Button from 'react-bootstrap/Button'
 import Form from 'react-bootstrap/Form'
-import web3 from 'web3';
 
+const serverAddr = 'http://192.168.1.11:5000';
 
 export function Login() {
     const [username, setUsername] = useState('');
@@ -13,14 +12,13 @@ export function Login() {
 
     async function onSubmitClick(e) {
         e.preventDefault();
-        console.log("You pressed login");
+
         let opts = {
             'username': username,
             'password': password
         };
-        console.log(opts);
 
-        const response = await fetch('http://192.168.1.11:5000/api/login', {
+        const response = await fetch(serverAddr+'/api/login', {
             method: 'post',
             body: JSON.stringify(opts)
         });
@@ -28,13 +26,11 @@ export function Login() {
         const token = await response.json();
 
         if (token.access_token) {
-            login(token);
-            var CryptoJS = require("crypto-js");
+            sessionStorage.setItem('token', token.access_token);
             
-            //stores for session only password for PK encription
-            const passwdKey = CryptoJS.AES.encrypt(password, web3.utils.randomHex(32));        
-            sessionStorage.setItem('passwdKey', passwdKey);     
-
+            //stores password in session storage
+            sessionStorage.setItem('passwdKey', password);
+                        
             setResult({"class":"SuccessReg","res":"Success"});
         }
         else {

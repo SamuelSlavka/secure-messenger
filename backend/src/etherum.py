@@ -52,7 +52,7 @@ def build_and_deploy():
             'contract_address': deploy_contract(contract)
         }
         return data
-    return "Error Connecting"
+    return False
 
 
 #contr = build_and_deploy()

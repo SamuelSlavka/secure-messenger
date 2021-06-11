@@ -16,7 +16,8 @@ def createTables():
       """,
       """ CREATE TABLE IF NOT EXISTS message (
          id serial PRIMARY KEY NOT NULL,
-         address VARCHAR(255) NOT NULL,
+         recvAddress VARCHAR(255) NOT NULL,
+         sendAddress VARCHAR(255) NOT NULL,
          name VARCHAR(255) NOT NULL,
          timestamp VARCHAR(255) NOT NULL,
          contents VARCHAR NOT NULL
@@ -57,6 +58,9 @@ def getContract():
 def setContract(address, abi):
    conn = connectDB()
    cur = conn.cursor()
+   cur.execute("DROP TABLE contract")
+   conn.commit()
+   createTables()
    cur.execute("INSERT INTO contract (address, abi) VALUES (%s, %s)", (address, abi))
    conn.commit()
    cur.close()
@@ -66,17 +70,17 @@ def setContract(address, abi):
 def getMessage(address, name, timestamp):
    conn = connectDB()
    cur = conn.cursor()
-   cur.execute("SELECT * FROM message WHERE address=%s AND name = %s AND timestamp = %s", (address, name, timestamp))
+   cur.execute("SELECT * FROM message WHERE (recvAddress=%s OR sendAddress=%s) AND name = %s AND timestamp = %s", (address, address, name, timestamp))
    res = cur.fetchone()
    cur.close()
    conn.close()
    return res
 
-def setMessage(address, name, timestamp, contents):
+def setMessage(recvAddress, sendAddress, name, timestamp, contents):
    conn = connectDB()
    cur = conn.cursor()
    
-   cur.execute("INSERT INTO message (address, name, timestamp, contents) VALUES (%s, %s, %s, %s)", (address, name, timestamp, contents))
+   cur.execute("INSERT INTO message (recvAddress, sendAddress, name, timestamp, contents) VALUES (%s, %s, %s, %s)", (recvAddress, sendAddress, name, timestamp, contents))
    conn.commit()
    cur.close()
    conn.close()

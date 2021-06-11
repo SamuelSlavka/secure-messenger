@@ -1,5 +1,5 @@
-# Web app with authentication
-using SSL and nginx revese proxy
+# Private messaaging web app
+using Ethereum blockchain for authentication and integrity checking.
 
 #### Dependencies:
   docker-compose <br>

@@ -1,27 +1,31 @@
 import React, { useEffect, useState } from 'react';
-import { authFetch } from ".";
-
+const serverAddr = 'http://192.168.1.11:5000'
 export function Logout() {
   const [message, setMessage] = useState('');
 
   useEffect(() => {
-    sessionStorage.clear();
-    
+    // blacklists token for further use
     async function fetchAuth() {
+      const token = await sessionStorage.getItem('token');
+      
+      if (token !== null) {
+        const response = await fetch(serverAddr + '/api/logout', {
+          method: 'post',
+          headers: { Authorization: 'Bearer ' + token },
+          body: { token: token }
+        })
+        const json = await response.json();
 
-      const response = await authFetch("http://192.168.1.11:5000/api/logout");
-      const json = await response.json();
-
-      if (response.status === 401) {
-        setMessage("Failed to logout.");
-        return null;
+        if (response && response.status === 401) 
+          setMessage("Failed to logout.");      
+        if (json && json.message) 
+          setMessage(json.message);              
       }
-      else if (json && json.message) {
-        setMessage(json.message);
-      }
-      return json;
+      else
+        setMessage("You are not logged in");
     }
     fetchAuth();
+    sessionStorage.clear();
   }, []);
   return (
     <h2>{message}</h2>

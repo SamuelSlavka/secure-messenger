@@ -1,18 +1,17 @@
 import React, { useState } from 'react';
-import { login } from ".";
 import 'bootstrap/dist/css/bootstrap.min.css';
 import Button from 'react-bootstrap/Button'
 import Form from 'react-bootstrap/Form'
 import Web3 from 'web3'
 
 
-const serverAddr = 'http://192.168.1.11';
+const serverAddr = 'http://192.168.1.11:5000';
 
 async function loadBlockchainData() {
     const web3 = new Web3(Web3.givenProvider || "http://192.168.1.21:8545");
     //create account
     //const acc = web3.eth.accounts.create(web3.utils.randomHex(32));
-    const acc = web3.eth.accounts.privateKeyToAccount('334d83e148532e78fcf85ff4d679840beb6c6024f64429a26046541ef01dc290');
+    const acc = web3.eth.accounts.privateKeyToAccount('0x8ccc31e551f0e8e1124de0cc2692401377ab13aa7f53e5eae5efb46d820d8a3d');
     return acc;
 }
 
@@ -30,23 +29,33 @@ export function Register() {
             'password': password
         };
         
-        const response = await fetch(serverAddr+':5000/api/register', {
+        const response = await fetch(serverAddr+'/api/register', {
             method: 'post',
             body: JSON.stringify(opts)
         });
 
         const token = await response.json();
-
+        
         if (token.access_token) {
-            const acc = await loadBlockchainData();
-            //key for encrypting password
-            const rnd = Math.random().toString(36)
+            sessionStorage.setItem('token', token.access_token);
+
+            const acc = await loadBlockchainData();    
+            opts = {
+                'address': acc.address
+            };
+            console.log('re: '+ acc.address);
+            //fetch save account address in server
+            await fetch(serverAddr+'/api/info',{
+                method: 'post',
+                body: JSON.stringify(opts),
+                headers:{Authorization: 'Bearer '+token.access_token}                
+            })
+
             // stores encripterd private key in local storage   
-            const passwdKey = CryptoJS.AES.encrypt(password, rnd);
-            localStorage.setItem('privateKey', (CryptoJS.AES.encrypt(acc.privateKey, passwdKey.toString() )));
-            sessionStorage.setItem('passwdKey', passwdKey);        
+            localStorage.setItem('privateKey', (CryptoJS.AES.encrypt(acc.privateKey, password )));
+            sessionStorage.setItem('passwdKey', password);
                 
-            login(token);
+
             setResult("Your private key was encrypted and saved localy. If you loose it, you loose acces to your account. You can view it in the Account tab.");
             setClassName("SuccessReg");
         }

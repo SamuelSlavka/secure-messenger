@@ -59,24 +59,46 @@ body {
   width: 90px;
 }
 
+.modal-content {
+  width: auto;
+  padding: 20px
+}
+
 /* For Mobile */
 @media screen and (max-width: 600px) {
 
 }
 
-.content {
-  flex: 1 0 auto;
-  padding: 10px;
+.modal-90w {
+  max-width: max-content;
+  overflow-wrap: break-word;
+}
+
+.mb-3 {
+  position: fixed;
+  bottom: 27px;
+  background-color: #ffffff;
+  width: 76%;
 }
 
 .footer {
   flex-shrink: 0;
   display: flex;
   text-align: center;
-  background-color: #2e5099;;
+  background-color: #2e5099;
   color: white;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
 }
 
+#backLink{
+  padding-top: 15px;
+}
+#backAlign{
+  margin-left: auto;
+}
 #git-link,
 #git-link:hover,
 #git-link:active,
@@ -96,4 +118,12 @@ body {
   margin:4px;
   border: 2px solid black;
   border-radius: 5px;
+}
+
+.col p {
+  margin: 0;
+}
+
+.col {
+  overflow-wrap: break-word;
 }

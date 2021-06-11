@@ -6,6 +6,8 @@ from flask_cors import CORS, cross_origin
 from model import User
 import psql
 import etherum
+import json
+import sys
 
 db = User._db
 guard = flask_praetorian.Praetorian()
@@ -27,6 +29,14 @@ blacklist = set()
 def is_blacklisted(jti):
     return jti in blacklist
 
+# create psql database and tables
+psql.createTables()
+
+# create and deploy smart contract
+contract = etherum.build_and_deploy()
+if not contract:
+    sys.exit("Error connecting")
+psql.setContract(contract['contract_address'], json.dumps(contract['abi']))
 
 # Initialize the flask-praetorian instance for the app
 guard.init_app(app, User, is_blacklisted=is_blacklisted)
@@ -34,6 +44,9 @@ guard.init_app(app, User, is_blacklisted=is_blacklisted)
 # Initialize a local database
 app.config['SQLALCHEMY_DATABASE_URI'] = f"sqlite:///{os.path.join(os.getcwd(), 'database.db')}"
 db.init_app(app)
+
+with app.app_context():
+    db.create_all()
 
 # Set up some routes
 @app.route('/api/')
@@ -47,27 +60,24 @@ def home():
 @cross_origin()
 def register():
     req = flask.request.get_json(force=True)
-    _username = req.get('username', None)
-    _password = req.get('password', None)
-    db.create_all() 
+    username = req.get('username', None)
+    password = req.get('password', None)
     new_user = User(
-            username= _username,
+            username= username,
             address= "",
-            password= guard.hash_password(_password),
-            roles='operator'
+            password= guard.hash_password(password)
     )
+    if username is None or password is None:
+        return {'access_token':''},400
+    if db.session.query(User).filter_by(username = username).first() is not None:
+        return {'access_token':''},400
 
-    if db.session.query(User).filter_by(username=_username).count() < 1:
-        db.session.add(new_user)
-        db.session.commit()
-    else:
-        return {'access_token':'','address:': '', 'abi':''},401
+    db.session.add(new_user)
+    db.session.commit()
 
-    user = guard.authenticate(_username, _password)
+    user = guard.authenticate(username, password)
     
-    res = psql.getContract()
-    print(res)
-    ret = {'access_token': guard.encode_jwt_token(user), 'address:': 'addr', 'abi':'abi'}
+    ret = {'access_token': guard.encode_jwt_token(user)}
     return ret, 200
 
 # Logs in user
@@ -77,16 +87,33 @@ def login():
     req = flask.request.get_json(force=True)
     username = req.get('username', None)
     password = req.get('password', None)
+    address = req.get('address', None)
     user = guard.authenticate(username, password)
+
+    ret = {'access_token': guard.encode_jwt_token(user)}
+    return ret, 200
+
+# Adds address and return contract info
+@app.route('/api/info', methods=['POST'])
+@cross_origin()
+@flask_praetorian.auth_required
+def info():
+    req = flask.request.get_json(force=True)        
+    address = req.get('address', None)
+    if address is not None:
+        flask_praetorian.current_user().address = address
+        db.session.commit()
+    
     res = psql.getContract()
-    print(res)
-    ret = {'access_token': guard.encode_jwt_token(user), 'address:': 'addr', 'abi':'abi'}
+
+    ret = {'address': res[1], 'abi':res[2], 'userAddr':flask_praetorian.current_user().address, 'userName':flask_praetorian.current_user().username}
     return ret, 200
 
 
 # Saves message into db
 @app.route('/api/savemessage', methods=['POST'])
 @cross_origin()
+@flask_praetorian.auth_required
 def savemessage():
     req = flask.request.get_json(force=True)
     contents = req.get('contents', None)
@@ -102,26 +129,31 @@ def savemessage():
 # Gets message from db
 @app.route('/api/getmessage', methods=['POST'])
 @cross_origin()
+@flask_praetorian.auth_required
 def getmessage():
     req = flask.request.get_json(force=True)
     name = req.get('recName', None)
     address = req.get('recAddress', None)
     timestamp = req.get('timestamp', None)
-
+    
+    #flask_praetorian.current_user().username
+    #flask_praetorian.current_user().address
+    
     res = psql.getMessage(address, name, timestamp)
 
-    user = guard.authenticate(username, password)
     ret = {'result':res}
     return ret, 200
 
 # Disables an JWT
-@app.route('/api/logout', methods=['GET'])
+@app.route('/api/logout', methods=['POST'])
 @cross_origin()
 def logout():
-    token = ((flask.request.headers.get('Authorization')).split())[1]
-    data = guard.extract_jwt_token(token)
-    blacklist.add(data['jti'])
-    return flask.jsonify(message='token blacklisted ({})'.format(data))
+    req = flask.request.get_json()        
+    if req is not None:
+        token = req.get('token', None)        
+        data = guard.extract_jwt_token(token)
+        blacklist.add(data['jti'])
+    return flask.jsonify(message='token blacklisted')
 
 # Refreshes an existing JWT
 @app.route('/api/refresh', methods=['POST'])

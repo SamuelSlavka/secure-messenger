@@ -40,7 +40,7 @@ contract MessageList {
         emit MessageCreated(recv.messageCount, msg.sender, reciever);
     }
 
-    function getMessages(address reciever) public view returns (Message[] memory) {        
+    function getMessages(address reciever, address sender) public view returns (Message[] memory) {        
         Client storage recv = clients[reciever];    
         Message[] memory res = new Message[](recv.messageCount);
 
@@ -49,7 +49,8 @@ contract MessageList {
         }
 
         for (uint256 i = 0; i<recv.messageCount; i++ ) {
-            res[i] = recv.messages[i];
+            if(sender == recv.messages[i].senderAddr)
+                res[i] = recv.messages[i];
         }
         
         return res;

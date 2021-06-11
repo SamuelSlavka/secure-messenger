@@ -1,30 +1,20 @@
 import React, { Component } from 'react'
-import { BrowserRouter as Router, Switch, Route, Redirect, Link } from "react-router-dom";
+import { BrowserRouter as Router, Switch, Route, Link } from "react-router-dom";
 
 import 'bootstrap/dist/css/bootstrap.min.css';
 import Navbar from 'react-bootstrap/Navbar'
 import Nav from 'react-bootstrap/Nav'
 
 import { Home } from './Home';
-import { useAuth } from "./auth"
 import { Login } from './auth/Login';
 import { Protected } from './auth/Protected';
 import { Logout } from './auth/Logout';
 import { Register } from './auth/Register';
 
 
-const PrivateRoute = ({ component: Component, ...rest }) => {
-  const [logged] = useAuth();
-
-  return <Route {...rest} render={(props) => (
-    logged
-      ? <Component {...props} />
-      : <Redirect to='/login' />
-  )} />
-}
 
 export default class App extends Component {
-  
+
   //dynamic part of website
   render() {
     return [
@@ -36,7 +26,7 @@ export default class App extends Component {
             <Navbar.Collapse id="basic-navbar-nav">
               <Nav className="mr-auto">
                 <Link className="nav-link" to="/">Home</Link>
-                <Link className="nav-link" to="/protected">Account</Link>
+                <Link className="nav-link" to="/protected">Messages</Link>
               </Nav>
               <Nav>
                 <Link className="nav-link" to="/login">Login</Link>
@@ -52,7 +42,7 @@ export default class App extends Component {
                 <Login />
               </Route>
 
-              <PrivateRoute path="/protected" component={Protected} />
+              <Route path="/protected" component={Protected} />
 
               <Route path="/register">
                 <Register />
@@ -67,7 +57,6 @@ export default class App extends Component {
           </ul>
         </Router>
       </div>,
-
       <footer key='1' className="footer">
         <p>Welcome to slavka.one</p>
         <a id="git-link" href="https://github.com/SamuelSlavka/slavkaone">
