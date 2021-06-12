@@ -22,7 +22,7 @@ contract MessageList {
 
     mapping(address => Client) private clients;
 
-    function createMessage(string memory _content, address reciever) public {
+    function createMessage(string memory _content, address reciever) public returns (uint256) {
         Client storage recv = clients[reciever];
 
         if (!recv.initialized) {
@@ -38,21 +38,28 @@ contract MessageList {
         recv.messageCount++;
 
         emit MessageCreated(recv.messageCount, msg.sender, reciever);
+        return block.timestamp;
     }
 
     function getMessages(address reciever, address sender) public view returns (Message[] memory) {        
-        Client storage recv = clients[reciever];    
-        Message[] memory res = new Message[](recv.messageCount);
+        Client storage recv = clients[reciever];  
+        Client storage sndr = clients[sender];
 
-        if(msg.sender != reciever){
-            return res;
-        }
-
-        for (uint256 i = 0; i<recv.messageCount; i++ ) {
-            if(sender == recv.messages[i].senderAddr)
-                res[i] = recv.messages[i];
-        }
+        Message[] memory res = new Message[](recv.messageCount+sndr.messageCount);
         
+        uint256 j = 0;
+        for (uint256 i = 0; i<=recv.messageCount; i++ ) {
+            if(sender == recv.messages[i].senderAddr){
+                res[j] = recv.messages[i];
+                j++;
+            }
+        }
+        for (uint256 i = 0; i<=sndr.messageCount; i++ ) {
+            if(reciever == sndr.messages[i].senderAddr){
+                res[j] = sndr.messages[i];
+                j++;
+            }
+        }        
         return res;
     }
 }

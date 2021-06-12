@@ -54,16 +54,15 @@ def build_and_deploy():
         return data
     return False
 
-
-#contr = build_and_deploy()
-#newcont = w3.eth.contract(
-#address=contr['contract_address'],
-#abi=contr['abi']
-#)
-#tx_hash = newcont.functions.createMessage("Hello there", '0x62B9519896F3A0557D4B4A649B69567E3F1BD04c').transact()
-#tx_receipt = w3.eth.wait_for_transaction_receipt(tx_hash)
-#print(newcont.functions.getMessages('0x62B9519896F3A0557D4B4A649B69567E3F1BD04c').call())
-
+def get_last_transaction():
+    print(w3.isConnected())
+    try:
+        transaction = w3.eth.get_transaction_by_block(w3.eth.blockNumber, 0)
+        tx_dict = dict(transaction)
+        tx_json = json.dumps(tx_dict, cls=HexJsonEncoder)
+        return tx_json
+    except:
+        return {'error':'Error while fetching transaction'}
 
 def get_last_transaction():
     print(w3.isConnected())
@@ -74,3 +73,14 @@ def get_last_transaction():
         return tx_json
     except:
         return {'error':'Error while fetching transaction'}
+
+
+#contr = build_and_deploy()
+#newcont = w3.eth.contract(
+#address=contr['contract_address'],
+#abi=contr['abi']
+#)
+#tx_hash = newcont.functions.createMessage("Hello there", '0x62B9519896F3A0557D4B4A649B69567E3F1BD04c').transact()
+#tx_receipt = w3.eth.wait_for_transaction_receipt(tx_hash)
+#print(newcont.functions.getMessages('0x62B9519896F3A0557D4B4A649B69567E3F1BD04c').call())
+#getTransactionReceipt        

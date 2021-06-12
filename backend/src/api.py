@@ -35,7 +35,7 @@ psql.createTables()
 # create and deploy smart contract
 contract = etherum.build_and_deploy()
 if not contract:
-    sys.exit("Error connecting")
+    sys.exit("Error connecting to ETH")
 psql.setContract(contract['contract_address'], json.dumps(contract['abi']))
 
 # Initialize the flask-praetorian instance for the app
@@ -106,40 +106,53 @@ def info():
     
     res = psql.getContract()
 
-    ret = {'address': res[1], 'abi':res[2], 'userAddr':flask_praetorian.current_user().address, 'userName':flask_praetorian.current_user().username}
+    ret = {'address': res[1], 'abi':res[2], 'userAddr':flask_praetorian.current_user().address, 'username':flask_praetorian.current_user().username}
     return ret, 200
 
+# Adds address and return contract info
+@app.route('/api/contacts', methods=['POST'])
+@cross_origin()
+@flask_praetorian.auth_required
+def contacts():
+    req = flask.request.get_json(force=True)
+    address = req.get('address', None)
+    
+    res = psql.getContacts(address)
+    ret = {'result':res}
+    return ret, 200
 
+#recvAddress, sendAddress, recvName, sendName, timestamp, contents
 # Saves message into db
 @app.route('/api/savemessage', methods=['POST'])
 @cross_origin()
 @flask_praetorian.auth_required
 def savemessage():
     req = flask.request.get_json(force=True)
-    contents = req.get('contents', None)
-    name = req.get('recName', None)
-    address = req.get('recAddress', None)
+    recvAddress = req.get('recvAddress', None)
+    sendAddress = req.get('sendAddress', None)
+    recvName = req.get('recvName', None)
+    sendName = req.get('sendName', None)    
     timestamp = req.get('timestamp', None)
-
-    psql.setMessage(address, name, timestamp, contents)
+    contents = req.get('contents', None)
+    
+    psql.setMessage(recvAddress, sendAddress, recvName, sendName, timestamp, contents)
 
     ret = {'result': 'success'}
     return ret, 200
 
-# Gets message from db
-@app.route('/api/getmessage', methods=['POST'])
+# Get all messages for user from db
+@app.route('/api/getmessages', methods=['POST'])
 @cross_origin()
 @flask_praetorian.auth_required
 def getmessage():
     req = flask.request.get_json(force=True)
-    name = req.get('recName', None)
-    address = req.get('recAddress', None)
-    timestamp = req.get('timestamp', None)
+    raddress = req.get('recAddress', None)
+    saddress = req.get('sendAddress', None)
     
     #flask_praetorian.current_user().username
     #flask_praetorian.current_user().address
     
-    res = psql.getMessage(address, name, timestamp)
+    res = psql.getMessages(raddress, saddress)
 
     ret = {'result':res}
     return ret, 200
@@ -169,7 +182,7 @@ def refresh():
 @cross_origin()
 @flask_praetorian.auth_required
 def protected():
-    return {"user": flask_praetorian.current_user().username, "address": flask_praetorian.current_user().address}
+    return {"username": flask_praetorian.current_user().username, "address": flask_praetorian.current_user().address}
 
 
 # Run the example

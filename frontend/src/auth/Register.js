@@ -7,11 +7,13 @@ import Web3 from 'web3'
 
 const serverAddr = 'http://192.168.1.11:5000';
 
-async function loadBlockchainData() {
+async function loadBlockchainData(username) {
     const web3 = new Web3(Web3.givenProvider || "http://192.168.1.21:8545");
     //create account
     //const acc = web3.eth.accounts.create(web3.utils.randomHex(32));
-    const acc = web3.eth.accounts.privateKeyToAccount('0x8ccc31e551f0e8e1124de0cc2692401377ab13aa7f53e5eae5efb46d820d8a3d');
+    var num= '0x80eb06cc3c1fb5cc0ae9c7fc1d6fafa02edac5cc7d2893f5cb4a3e99c46603d1';
+    const acc = web3.eth.accounts.privateKeyToAccount(num);
+    
     return acc;
 }
 
@@ -39,11 +41,11 @@ export function Register() {
         if (token.access_token) {
             sessionStorage.setItem('token', token.access_token);
 
-            const acc = await loadBlockchainData();    
+            const acc = await loadBlockchainData(username);    
             opts = {
                 'address': acc.address
             };
-            console.log('re: '+ acc.address);
+            
             //fetch save account address in server
             await fetch(serverAddr+'/api/info',{
                 method: 'post',
@@ -72,7 +74,7 @@ export function Register() {
     const handlePasswordChange = (e) => {
         setPassword(e.target.value);
     };
-
+   
     return (
         <div className="input-form">
         <Form className="input-border">

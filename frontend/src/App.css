@@ -79,6 +79,12 @@ body {
   bottom: 27px;
   background-color: #ffffff;
   width: 76%;
+  display: flex;
+}
+
+#formBasicName {
+  margin-bottom: 0px;
+  width: 100%;
 }
 
 .footer {

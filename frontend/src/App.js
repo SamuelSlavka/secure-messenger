@@ -18,7 +18,7 @@ export default class App extends Component {
   //dynamic part of website
   render() {
     return [
-      <div key='0' className='content'>
+      <div key='ct' className='content'>
         <Router>
           <Navbar expand="sm" bg="light" variant="light">
             <Navbar.Brand href="/">Slavka.one</Navbar.Brand>
@@ -57,7 +57,7 @@ export default class App extends Component {
           </ul>
         </Router>
       </div>,
-      <footer key='1' className="footer">
+      <footer key='ft' className="footer">
         <p>Welcome to slavka.one</p>
         <a id="git-link" href="https://github.com/SamuelSlavka/slavkaone">
           github.com/slavkaone

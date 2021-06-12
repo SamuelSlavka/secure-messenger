@@ -6,65 +6,78 @@ import Col from 'react-bootstrap/Col'
 import Modal from 'react-bootstrap/Modal'
 import Button from 'react-bootstrap/Button'
 import Form from 'react-bootstrap/Form'
-import { getBalance, getPK } from './web3Func';
+import { getBalance, getPK, getContacts } from './web3Func';
 import { MessageList } from '../messages/MessageList';
 
-const token = sessionStorage.getItem('token');
-
-const serverAddr = 'http://192.168.1.11:5000';
-
-
-export function UserList() {
+export function UserList(args) {
   // Modals
   const [showPK, setShowPK] = useState(false);
   const [showCreate, setShowCreate] = useState(false);
+  const [contactUsername, setContactUsername] = useState('');
+  const [contactAddress, setContactAddress] = useState('');
 
   const handleClosePK = () => setShowPK(false);
   const handleShowPK = () => setShowPK(true);
-
   const handleCloseCreate = () => setShowCreate(false);
   const handleShowCreate = () => setShowCreate(true);
+  const handleAddressChange = (e) => { setContactAddress(e.target.value); };
+  const handleUsernameChange = (e) => { setContactUsername(e.target.value); };
 
-  // Info collection
+  const [contactList, setContactList] = useState({ contacts: [] });
+  const [contact, setContact] = useState({ result: false, contactName: "", contactAddress: "", address: "", username: "", info: "" });
+
   const [balance, setBalance] = useState(0);
-  const [address, setAddress] = useState('');
-  const [username, setUsername] = useState('');
 
-  const [contact, setContact] = useState({ switch: false, contactName: "", contactAddress: "", myAddress: "", myName: "" });
+  //saved data and redirects
+  function alertClicked(val) {
+    setContact({ ...contact, result: true, contactName: val.username, contactAddress: val.address, address: args.props.address, username: args.props.username, info: args.props.info });
+  }
 
+  const Contact = (data) => {
+    return (
+      <ListGroup.Item action onClick={() => alertClicked(data.props)}>
+        <Row>
+          <Col><p>{data.props.username}</p></Col>
+          <Col><p>{data.props.address}</p></Col>
+        </Row>
+      </ListGroup.Item>
+    )
+  };
 
+  //creates a new contact 
+  const handleSaveCloseCreate = (username, address) => {
+    const data = { "username": username, "address": address }
+    setShowCreate(false);
+    setContactList({ contacts: [...contactList.contacts, data] })
+  }
 
   useEffect(() => {
+    //fetches account balance
     async function fetchAuth() {
-      var res = await fetch(serverAddr + '/api/info', {
-        method: 'post',
-        headers: { Authorization: 'Bearer ' + token },
-        body: JSON.stringify({})
-      })
-      var info = await res.json();
-
-      setAddress(info.userAddr)
-      setUsername(info.userName)
-
-      if (info.userAddr !== null && info.userAddr !== '') {
-        var nb = await getBalance(info.userAddr)
-        setBalance(nb)
+      if (args.props.address !== null && args.props.address !== '') {
+        var nb = await getBalance(args.props.address);
+        setBalance(nb);
+      }
+      //fetches contact list
+      if (args.props.address !== null && args.props.address !== '') {
+        var nb = await getContacts(args.props.address);
+        var data = []
+        nb.result.forEach(el => {
+          data.push({ "username": el[1], "address": el[0] })
+        });
+        setContactList({ contacts: [...contactList.contacts, ...data] });
       }
     }
     fetchAuth();
-  }, []);
+  }, [args.props.address]);
 
-  function alertClicked(val) {
-    console.log(val)
-    var json = JSON.parse(val)
-    setContact({ ...contact, 'result': true, contactName: json.username, contactAddress: json.address, myAddress: address, myName: username });
-  }
+
 
   return [
     contact.result
-      ? <MessageList props={contact} />
+      ? <MessageList key='MessageList' props={contact} />
       :
-      <div>
+      <div key='top'>
         <Modal dialogClassName="modal-90w" show={showPK} onHide={handleClosePK} animation={false}>
           <Modal.Header closeButton>
             <Modal.Title> <p> Write this down! </p> </Modal.Title>
@@ -85,12 +98,12 @@ export function UserList() {
             <Form>
               <Form.Group controlId="formBasicUsername">
                 <Form.Label>Username</Form.Label>
-                <Form.Control type="text" placeholder="Enter username" />
+                <Form.Control type="text" value={contactUsername} onChange={handleUsernameChange} placeholder="Enter username" autoComplete="new-password" />
               </Form.Group>
 
               <Form.Group controlId="formBasicUsername">
                 <Form.Label>Address</Form.Label>
-                <Form.Control type="text" placeholder="Enter address" />
+                <Form.Control type="text" value={contactAddress} onChange={handleAddressChange} placeholder="Enter address" autoComplete="new-password" />
               </Form.Group>
             </Form>
           </Modal.Body>
@@ -98,7 +111,7 @@ export function UserList() {
             <Button variant="secondary" onClick={handleCloseCreate}>
               Close
             </Button>
-            <Button variant="primary" onClick={handleCloseCreate}>
+            <Button variant="primary" onClick={() => handleSaveCloseCreate(contactUsername, contactAddress)} >
               Save Changes
             </Button>
           </Modal.Footer>
@@ -109,7 +122,7 @@ export function UserList() {
             <Nav.Link disabled><h3>Contacts</h3></Nav.Link>
           </Nav.Item>
           <Nav.Item>
-            <Nav.Link disabled>Your address: {address}</Nav.Link>
+            <Nav.Link disabled>Your address: {args.props.address}</Nav.Link>
           </Nav.Item>
           <Nav.Item>
             <Nav.Link disabled>Your balance: {balance}</Nav.Link>
@@ -125,18 +138,11 @@ export function UserList() {
         </Nav>
 
         <ListGroup variant="flush" >
-          <ListGroup.Item action onClick={() => alertClicked('{"username":"samo","address":"0x1cE2A975f9a4424337897351121074A028847CC1"}')}>
-            <Row>
-              <Col><p>samo</p></Col>
-              <Col><p>0x1cE2A975f9a4424337897351121074A028847CC1</p></Col>
-            </Row>
-          </ListGroup.Item>
-          <ListGroup.Item action onClick={() => alertClicked('{"username":"nthi","address":"0xF23638EF855ECB3D1716cA93593CA28A8491F7fa"}')}>
-            <Row>
-              <Col><p>nthi</p></Col>
-              <Col><p>0xF23638EF855ECB3D1716cA93593CA28A8491F7fa</p></Col>
-            </Row>
-          </ListGroup.Item>
+          {contactList.contacts.map(function (d, index) {
+            return (
+              <Contact key={index} props={d} />
+            )
+          })}
         </ListGroup>
       </div>
 
