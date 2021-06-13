@@ -41,8 +41,6 @@ export function MessageList(args) {
     const data = { "username": username, "address": address, "message": message }
     setMessageList({ messages: [...messageList.messages, data] })
     setMessageVal("");
-    
-  
   }
 
   useEffect(() => {
@@ -54,10 +52,11 @@ export function MessageList(args) {
             var uname = el[1] === args.props.address ? args.props.username : args.props.contactName
             data.push({ "username": uname, "address":  el[1], "message": el[0] })      
           });
-          setMessageList({ messages: [...messageList.messages, ...data] });          
+          if(data.length)
+            setMessageList({ messages: [...messageList.messages, ...data] });          
         }
         fetchAuth();
-      }, [args.props.info,args.props.address,args.props.contactAddress]);
+      }, []);
 
   const handleMessageChange = (e) => { setMessageVal(e.target.value); };
 

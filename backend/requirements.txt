@@ -8,3 +8,4 @@ python-dotenv
 web3
 solc
 py-solc
+psycopg2

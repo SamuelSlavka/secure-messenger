@@ -1,14 +1,15 @@
 import Web3 from 'web3';
-var crc32 = require('crc-32');
+//var crc32 = require('crc-32');
 let web3 = new Web3();
 
-const serverAddr = 'http://192.168.1.11:5000'
-web3.setProvider(new web3.providers.HttpProvider('http://192.168.1.21:7545'));
+var serverAddr = 'https://slavka.one'
+serverAddr = 'http://192.168.1.11:5000'
 
-const token = sessionStorage.getItem('token');
+web3.setProvider(new web3.providers.HttpProvider('https://rinkeby.infura.io/v3/1e87c1070ba04d9a8921909bd0f76091'));
 
 //fetch contract address and abi
 export async function getContractInfo() {
+  const token = sessionStorage.getItem('token');
   const response = await fetch(serverAddr + '/api/info', {
     method: 'post',
     headers: { Authorization: 'Bearer ' + token },
@@ -18,26 +19,9 @@ export async function getContractInfo() {
   return json;
 }
 
-async function initWeb3(info, address) {
-  //gets address and abi
-  var info = await getContractInfo()
-
-  //creates contract
-  var contract = new web3.eth.Contract(JSON.parse(info.abi), info.address);
-
-  //subscribes to event of recieving a message
-  contract.events.MessageCreated({ filter: { reciever: address } },
-    function (error, result) {
-      if (!error) {
-        console.log("recieved: " + result);
-      }
-    });
-
-  return contract;
-}
-
 export async function sendMessageToAddr(info, message, sendAddress, recvAddress, sendName, recvName) {
   try {
+    const token = sessionStorage.getItem('token');
     const contract = new web3.eth.Contract(JSON.parse(info.abi), info.address);
 
     var res = await contract.methods.createMessage(message, recvAddress).send({
@@ -57,7 +41,7 @@ export async function sendMessageToAddr(info, message, sendAddress, recvAddress,
         timestamp: 1,
         contents: message
       })
-    })
+    });
   }
   catch (error) {
     return false;
@@ -67,18 +51,30 @@ export async function sendMessageToAddr(info, message, sendAddress, recvAddress,
 
 export async function getMessagesFromAddr(info, recvAddress, sendAddress) {
   try {
+    const token = sessionStorage.getItem('token');
     const contract = new web3.eth.Contract(JSON.parse(info.abi), info.address);
 
-    var res = await contract.methods.getMessages(recvAddress, sendAddress).call({
+    var contractRes = await contract.methods.getMessages(recvAddress, sendAddress).call({
       to: info.address, // contract address
       from: sendAddress,
       gas: 3000000
     });
+
+    var dbRes = await fetch(serverAddr + '/api/getmessages', {
+      method: 'post',
+      headers: { Authorization: 'Bearer ' + token },
+      body: JSON.stringify({
+        recvAddress: recvAddress,
+        sendAddress: sendAddress
+      })
+    });
+    console.log(contractRes)
+    console.log(dbRes)
   }
   catch (error) {
     return error;
   }
-  return res;
+  return contractRes;
 }
 
 export async function getBalance(address) {
@@ -113,17 +109,36 @@ export function getPK() {
 
 export async function getContacts(address) {
   var res = "";
-  const token2 = sessionStorage.getItem('token');
+  const token = sessionStorage.getItem('token');
   try {
     const response = await fetch(serverAddr + '/api/contacts', {
       method: 'post',
-      headers: { Authorization: 'Bearer ' + token2 },
+      headers: { Authorization: 'Bearer ' + token },
       body: JSON.stringify({ address: address })
     })
     res = await response.json();
   }
   catch (exception_var) {
     res = "No contacts found";
+  }
+  finally {
+    return res;
+  }
+}
+
+export async function askForMoney(address) {
+  var res = "";
+  const token = sessionStorage.getItem('token');
+  try {
+    const response = await fetch(serverAddr + '/api/poor', {
+      method: 'post',
+      headers: { Authorization: 'Bearer ' + token },
+      body: JSON.stringify({ address: address })
+    })
+    res = await response.json();
+  }
+  catch (exception_var) {
+    res = "No founds left";
   }
   finally {
     return res;

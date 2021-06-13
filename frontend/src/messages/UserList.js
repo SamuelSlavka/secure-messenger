@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import ListGroup from 'react-bootstrap/ListGroup'
 import Nav from 'react-bootstrap/Nav'
 import Row from 'react-bootstrap/Row'
@@ -6,8 +6,11 @@ import Col from 'react-bootstrap/Col'
 import Modal from 'react-bootstrap/Modal'
 import Button from 'react-bootstrap/Button'
 import Form from 'react-bootstrap/Form'
-import { getBalance, getPK, getContacts } from './web3Func';
+import Tooltip from 'react-bootstrap/Tooltip'
+import OverlayTrigger from 'react-bootstrap/OverlayTrigger'
+import { getBalance, getPK, getContacts, askForMoney } from './web3Func';
 import { MessageList } from '../messages/MessageList';
+
 
 export function UserList(args) {
   // Modals
@@ -22,6 +25,16 @@ export function UserList(args) {
   const handleShowCreate = () => setShowCreate(true);
   const handleAddressChange = (e) => { setContactAddress(e.target.value); };
   const handleUsernameChange = (e) => { setContactUsername(e.target.value); };
+
+  const handlePoor = (e) => {
+    askForMoney(args.props.address);
+  }
+
+  const renderTooltip = (props) => (
+    <Tooltip id="button-tooltip" {...props}>
+      You will recieve your founds shortly, please dont spam this button :D
+    </Tooltip>
+  );
 
   const [contactList, setContactList] = useState({ contacts: [] });
   const [contact, setContact] = useState({ result: false, contactName: "", contactAddress: "", address: "", username: "", info: "" });
@@ -51,17 +64,19 @@ export function UserList(args) {
     setContactList({ contacts: [...contactList.contacts, data] })
   }
 
-  useEffect(() => {
+
+  const [ref, setRef] = useState(false);
+  if (!ref) {
     //fetches account balance
     async function fetchAuth() {
       if (args.props.address !== null && args.props.address !== '') {
-        var nb = await getBalance(args.props.address);
+        let nb = await getBalance(args.props.address);
         setBalance(nb);
       }
       //fetches contact list
       if (args.props.address !== null && args.props.address !== '') {
-        var nb = await getContacts(args.props.address);
-        var data = []
+        let nb = await getContacts(args.props.address);
+        let data = []
         nb.result.forEach(el => {
           data.push({ "username": el[1], "address": el[0] })
         });
@@ -69,8 +84,8 @@ export function UserList(args) {
       }
     }
     fetchAuth();
-  }, [args.props.address]);
-
+    setRef(true);
+  }
 
 
   return [
@@ -133,10 +148,17 @@ export function UserList(args) {
             <Nav.Link eventKey="link-2" onClick={handleShowPK} >Show PK</Nav.Link>
           </Nav.Item>
           <Nav.Item>
-            <Nav.Link eventKey="link-3" onClick={handleShowCreate} >Create a new Contact</Nav.Link>
+            <OverlayTrigger
+              placement="right"
+              delay={{ show: 250, hide: 400 }}
+              overlay={renderTooltip}>
+              <Nav.Link eventKey="link-3" onClick={handlePoor} >Reqest founds</Nav.Link>
+            </OverlayTrigger>
+          </Nav.Item>
+          <Nav.Item>
+            <Nav.Link eventKey="link-4" onClick={handleShowCreate} >Create a new Contact</Nav.Link>
           </Nav.Item>
         </Nav>
-
         <ListGroup variant="flush" >
           {contactList.contacts.map(function (d, index) {
             return (
@@ -144,7 +166,7 @@ export function UserList(args) {
             )
           })}
         </ListGroup>
-      </div>
+      </div >
 
 
   ];

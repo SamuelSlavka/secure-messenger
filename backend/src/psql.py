@@ -1,8 +1,11 @@
 import psycopg2
-
+#TODO
 def connectDB():
    return psycopg2.connect(
          host='0.0.0.0', database='postgres', user='postgres', password="postgres"
+      )
+   return psycopg2.connect(
+         host='postgres', database='postgres', user='postgres', password="postgres"
       )
 
 def createTables():

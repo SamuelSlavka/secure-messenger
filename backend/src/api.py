@@ -15,12 +15,16 @@ guard = flask_praetorian.Praetorian()
 # Initialize flask app
 app = flask.Flask(__name__)
 app.debug = True
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SECRET_KEY'] = 'top secret'
 app.config['JWT_ACCESS_LIFESPAN'] = {'hours': 24}
 app.config['JWT_REFRESH_LIFESPAN'] = {'days': 30}
 
+
 # Initializes CORS
 cors = CORS(app, resources={"/api/*": {"origins": "*"}})
+app.config['CORS_HEADERS'] = 'Content-Type'
+
 
 # Token blacklist
 blacklist = set()
@@ -29,24 +33,31 @@ blacklist = set()
 def is_blacklisted(jti):
     return jti in blacklist
 
-# create psql database and tables
+# create psql message and contract database
 psql.createTables()
 
-# create and deploy smart contract
-contract = etherum.build_and_deploy()
-if not contract:
-    sys.exit("Error connecting to ETH")
-psql.setContract(contract['contract_address'], json.dumps(contract['abi']))
-
-# Initialize the flask-praetorian instance for the app
-guard.init_app(app, User, is_blacklisted=is_blacklisted)
-
-# Initialize a local database
+# Initialize a local user database
 app.config['SQLALCHEMY_DATABASE_URI'] = f"sqlite:///{os.path.join(os.getcwd(), 'database.db')}"
 db.init_app(app)
 
 with app.app_context():
     db.create_all()
+
+# create and deploy smart contract
+acct = ('0xb53f03cf0d04600a66409b758be1b0bb377ec1203e964853b330640440a21728')
+res = etherum.init_eth_with_PK(acct)
+
+if not res['result']:
+    sys.exit("Error connecting to ETH")
+if res['new_contract']:
+    with app.app_context():
+        db.drop_all()
+        db.create_all()
+        
+print("Contract Deployed")
+
+# Initialize the flask-praetorian instance for the app
+guard.init_app(app, User, is_blacklisted=is_blacklisted)
 
 # Set up some routes
 @app.route('/api/')
@@ -93,21 +104,27 @@ def login():
     ret = {'access_token': guard.encode_jwt_token(user)}
     return ret, 200
 
-# Adds address and return contract info
+# Returns contract info
 @app.route('/api/info', methods=['POST'])
 @cross_origin()
 @flask_praetorian.auth_required
-def info():
-    req = flask.request.get_json(force=True)        
+def info():    
+    res = psql.getContract()
+    ret = {'address': res[1], 'abi':res[2], 'userAddr':flask_praetorian.current_user().address, 'username':flask_praetorian.current_user().username}
+    return ret, 200
+
+# Adds address
+@app.route('/api/saveAddress', methods=['POST'])
+@cross_origin()
+@flask_praetorian.auth_required
+def saveAddr():
+    req = flask.request.get_json(force=True)
     address = req.get('address', None)
     if address is not None:
         flask_praetorian.current_user().address = address
         db.session.commit()
-    
-    res = psql.getContract()
-
-    ret = {'address': res[1], 'abi':res[2], 'userAddr':flask_praetorian.current_user().address, 'username':flask_praetorian.current_user().username}
-    return ret, 200
+    ret = {'result': 'success'}
+    return ret, 200   
 
 # Adds address and return contract info
 @app.route('/api/contacts', methods=['POST'])
@@ -187,4 +204,4 @@ def protected():
 
 # Run the example
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000)
+    app.run(host='192.168.1.11', port=5000)

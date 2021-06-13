@@ -13,8 +13,6 @@ services:
       - .:/backend/src
     networks:
       - app-network
-    links:
-      - postgres:postgres
     env_file:
       - .env
 
@@ -38,9 +36,7 @@ services:
       - ./nginx-conf:/etc/nginx/conf.d
       - certbot-etc:/etc/letsencrypt
       - certbot-var:/var/lib/letsencrypt
-      - dhparam:/etc/ssl/certs
-    depends_on:
-      - backend
+      - dhparam:/etc/ssl/certs  
     networks:
       - app-network
 
@@ -51,8 +47,6 @@ services:
       - certbot-etc:/etc/letsencrypt
       - certbot-var:/var/lib/letsencrypt
       - web-root:/var/www/html
-    depends_on:
-      - nginx
     command: certonly --webroot --webroot-path=/var/www/html --email slavka.samuel@gmail.com --agree-tos --no-eff-email --staging -d slavka.one  -d www.slavka.one
 
   postgres:
@@ -64,15 +58,21 @@ services:
       - POSTGRES_PASSWORD=postgres
     expose:
       - '5432'
+    ports:
+      - 5432:5432
+    networks:
+      - app-network
+    links:
+      - backend
     volumes: 
       - ./postgres-data:/var/lib/postgresql/data
       - ./sql/create_tables.sql:/docker-entrypoint-initdb.d/create_tables.sql
-    network_mode: host
 
-  
   adminer:
     image: adminer
-    restart: always
+    restart: unless-stopped
+    networks:
+      - app-network
     ports:
       - 8080:8080
 

@@ -2,8 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { UserList } from '../messages/UserList';
 import { getContractInfo } from '../messages/web3Func';
 
-const serverAddr = 'http://192.168.1.11:5000'
-
+var serverAddr = 'https://slavka.one'
+serverAddr = 'http://192.168.1.11:5000'
 
 export function Protected() {
 
