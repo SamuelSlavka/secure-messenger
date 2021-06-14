@@ -1,14 +1,10 @@
-import json
+import json, subprocess, os, sys, psql, constants
 from web3 import Web3
 from hexbytes import HexBytes
 from web3.middleware import geth_poa_middleware
 from eth_account import Account
-import subprocess
-import os
-import sys
-import psql
 
-w3 = Web3(Web3.HTTPProvider('https://rinkeby.infura.io/v3/1e87c1070ba04d9a8921909bd0f76091'))
+w3 = Web3(Web3.HTTPProvider(constants.PROVIDER))
 
 #### ONLY IN RINKEBY!!
 w3.middleware_onion.inject(geth_poa_middleware, layer=0)
@@ -63,10 +59,31 @@ def deploy_contract(contract_interface, acct):
         return {'error': sys.exc_info()[0]}
     
 
+# Send some eth to client
+def reqest_founds(address,pk):
+    try:
+        acc = w3.eth.account.privateKeyToAccount(pk)
+        #build transaction
+        signed_txn = w3.eth.account.signTransaction(dict(
+            nonce=w3.eth.get_transaction_count(acc.address),
+            gasPrice=w3.eth.gas_price,
+            gas=100000,
+            to=address,
+            value=1000000000000000
+        ),
+        acc.privateKey)
+        tx_hash = w3.eth.send_raw_transaction(signed_txn.rawTransaction)
+        # Get tx receipt to get contract address
+        tx_receipt = w3.eth.wait_for_transaction_receipt(tx_hash) 
+        return tx_receipt
+    except:
+        print(sys.exc_info()[0])
+        return {'error': sys.exc_info()[0]}
+
+#build and deploy contract
 def build_and_deploy(acc):
     if(w3.isConnected()):
         contract = compile_contract()
-        print("Contract Compiled")
         data = {
             'abi': contract['abi'],
             'contract_address': deploy_contract(contract,acc)
@@ -74,6 +91,7 @@ def build_and_deploy(acc):
         return data
     return False
 
+#return last transaction form blockchain
 def get_last_transaction():
     try:
         transaction = w3.eth.get_transaction_by_block(w3.eth.blockNumber, 0)
@@ -83,6 +101,7 @@ def get_last_transaction():
     except:
         return {'error':sys.exc_info()[0]}
 
+#initializes contract and blockchain connection
 def init_eth_with_PK(pk):
     acc = w3.eth.account.privateKeyToAccount(pk)
     res = acc.address
@@ -98,42 +117,3 @@ def init_eth_with_PK(pk):
         return {'result': True, 'new_contract':new_contract}
     else:
         return {'result': False, 'new_contract':new_contract}
-
-
-# Send some eth to client
-def reqest_founds(address,acct):
-    try:
-        #build transaction
-        signed_txn = w3.eth.account.sign_transaction(dict(
-            nonce=w3.eth.get_transaction_count(acct.address),
-            gasPrice=w3.eth.gas_price,
-            gas=100000,
-            to=address,
-            value=1000,
-            data=b'',
-        ),
-        acct.privateKey)
-
-        tx_hash = w3.eth.send_raw_transaction(signed_txn.rawTransaction)
-                            
-        # Get tx receipt to get contract address
-        tx_receipt = w3.eth.wait_for_transaction_receipt(tx_hash)
-        return tx_receipt
-    except:
-        print(sys.exc_info()[0])
-        return {'error': sys.exc_info()[0]}
-    
-
-#acct = w3.eth.account.privateKeyToAccount('0xb53f03cf0d04600a66409b758be1b0bb377ec1203e964853b330640440a21728')
-#w3.eth.default_account = '0x723F129B803a34C501042333499e26b6888f35Cb'
-#contr = build_and_deploy(acct)
-#print(contr)
-#newcont = w3.eth.contract(
-    #address=contr['contract_address'],
-    #abi=contr['abi']
-    #)
-#tx_hash = newcont.functions.createMessage("Hello there", '0xE1Dc4BeDE50a0957016bc5FdA19a61dc681B952d').transact()
-#print(tx_hash)
-#tx_receipt = w3.eth.wait_for_transaction_receipt(tx_hash)
-#print(newcont.functions.getMessages('0xE1Dc4BeDE50a0957016bc5FdA19a61dc681B952d').call())
-   

@@ -3,8 +3,7 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import Button from 'react-bootstrap/Button'
 import Form from 'react-bootstrap/Form'
 
-var serverAddr = 'https://slavka.one'
-serverAddr = 'http://192.168.1.11:5000'
+var serverAddr = 'https://slavka.one';
 
 export function Login() {
     const [username, setUsername] = useState('');
@@ -30,8 +29,7 @@ export function Login() {
             sessionStorage.setItem('token', token.access_token);
             
             //stores password in session storage
-            sessionStorage.setItem('passwdKey', password);
-                        
+            sessionStorage.setItem('passwdKey', password);                        
             setResult({"class":"SuccessReg","res":"Success"});
         }
         else {

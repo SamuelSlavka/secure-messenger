@@ -8,6 +8,7 @@ class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(32), index = True)
     password = db.Column(db.String(128))
+    publicKey = db.Column(db.String(128))
     address = db.Column(db.String(42))
 
     @property

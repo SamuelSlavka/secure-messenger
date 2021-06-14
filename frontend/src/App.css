@@ -12,8 +12,9 @@ body {
 
 .results {
   margin-top: 30px;
-  margin-left: 10%;
-  margin-right: 10%;
+  padding-bottom: 60px;
+  padding-left: 40px;
+  padding-right: 40px;
 }
 
 #FailReg {
@@ -25,6 +26,10 @@ body {
 .regResult{
   padding: 10px;
   margin: 20px;
+}
+
+.accountInfo{
+  font-size: small;
 }
 
 .input-form {

@@ -5,19 +5,29 @@ import Nav from 'react-bootstrap/Nav'
 import Form from 'react-bootstrap/Form'
 import FormControl from 'react-bootstrap/FormControl'
 import Button from 'react-bootstrap/Button'
-import { sendMessageToAddr,getMessagesFromAddr } from './web3Func';
+import { sendMessageToAddr, getMessagesFromAddr } from './web3Func';
 
 
 export function MessageList(args) {
+  //auto refresh state
+  const [interv, setInterv] = useState(-1);
+
   const [switchState, setSwitchState] = useState(false);
   const [messageList, setMessageList] = useState({ messages: [] });
   const [messageVal, setMessageVal] = useState('');
-  
+
+  const handleMessageChange = (e) => { setMessageVal(e.target.value); };
+
+  //stops timer and redirects to contacts
   function alertClicked() {
+    if (interv !== -1) {
+      clearInterval(interv);
+      setInterv(-1);
+    }
     setSwitchState(true)
   }
 
-
+  //message component
   const Message = (data) => {
     return (
       <Card style={{ width: '100%' }}>
@@ -32,8 +42,9 @@ export function MessageList(args) {
     )
   };
 
-  //message, sendAddress, recvAddress
+  //handles message creation, encryption and storage
   const handleMessageCreate = (event, username, address, message) => {
+    //send to reciever
     sendMessageToAddr(args.props.info, message, args.props.address, args.props.contactAddress, username, args.props.contactName);
     
     event.preventDefault();
@@ -44,21 +55,38 @@ export function MessageList(args) {
   }
 
   useEffect(() => {
-        //fetches account balance
-        async function fetchAuth() {          
-          var res = await getMessagesFromAddr(args.props.info, args.props.address, args.props.contactAddress)
-          var data = []
+    var timerID = -1;
+    //priodiaclly fetches messages for given contact
+    async function fetchAuth() {
+      if (timerID !== -1)
+        setInterv(timerID);
+      var res = await getMessagesFromAddr(args.props.info, args.props.address, args.props.contactAddress)
+      var data = []
+      if (res) {
+        if (res.length) {
           res.forEach(el => {
-            var uname = el[1] === args.props.address ? args.props.username : args.props.contactName
-            data.push({ "username": uname, "address":  el[1], "message": el[0] })      
+            if (el[0] !== '') {
+              data.push({ "username": el[4], "address": el[2], "message": el[6] })
+            }
           });
-          if(data.length)
-            setMessageList({ messages: [...messageList.messages, ...data] });          
+          if (data.length)
+            setMessageList({ messages: [...messageList.messages, ...data] });
         }
-        fetchAuth();
-      }, []);
+      }
+    }
+    //sets timer for next refresh
+    fetchAuth();
+    if (!switchState) {
+      timerID = setInterval(() => {
+        if (!switchState)
+          fetchAuth();
+      }, 15000);
+    }
+    return () => {
+      clearInterval(timerID)
+    }
+  }, [args.props.address]);
 
-  const handleMessageChange = (e) => { setMessageVal(e.target.value); };
 
   return [
     switchState
@@ -82,8 +110,8 @@ export function MessageList(args) {
           })}
         </div>
         <Form className="mb-3" onSubmit={(e) => handleMessageCreate(e, args.props.username, args.props.address, messageVal)} >
-        <Form.Group controlId="formBasicName" id="formBasicName">
-          <FormControl type="text" value={messageVal} onChange={handleMessageChange} placeholder="Message" autoComplete="new-password" />
+          <Form.Group controlId="formBasicName" id="formBasicName">
+            <FormControl type="text" value={messageVal} onChange={handleMessageChange} placeholder="Message" autoComplete="new-password" />
           </Form.Group>
           <Button variant="primary" type="submit">
             Send

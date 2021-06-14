@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 
-var serverAddr = 'https://slavka.one'
-serverAddr = 'http://192.168.1.11:5000'
+var serverAddr = 'https://slavka.one';
 
 export function Logout() {
   const [message, setMessage] = useState('');
@@ -12,6 +11,7 @@ export function Logout() {
       const token = await sessionStorage.getItem('token');
       
       if (token !== null) {
+        //sends directive to blacklist JWT
         const response = await fetch(serverAddr + '/api/logout', {
           method: 'post',
           headers: { Authorization: 'Bearer ' + token },

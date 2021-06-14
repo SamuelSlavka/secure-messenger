@@ -1,13 +1,8 @@
-import os
-import flask
-import flask_sqlalchemy
-import flask_praetorian
+import os, flask, flask_sqlalchemy, flask_praetorian, json, sys
+import psql, etherum, constants
+
 from flask_cors import CORS, cross_origin
 from model import User
-import psql
-import etherum
-import json
-import sys
 
 db = User._db
 guard = flask_praetorian.Praetorian()
@@ -44,17 +39,14 @@ with app.app_context():
     db.create_all()
 
 # create and deploy smart contract
-acct = ('0xb53f03cf0d04600a66409b758be1b0bb377ec1203e964853b330640440a21728')
-res = etherum.init_eth_with_PK(acct)
+res = etherum.init_eth_with_PK(constants.PK)
 
 if not res['result']:
     sys.exit("Error connecting to ETH")
 if res['new_contract']:
     with app.app_context():
         db.drop_all()
-        db.create_all()
-        
-print("Contract Deployed")
+        db.create_all()        
 
 # Initialize the flask-praetorian instance for the app
 guard.init_app(app, User, is_blacklisted=is_blacklisted)
@@ -120,8 +112,11 @@ def info():
 def saveAddr():
     req = flask.request.get_json(force=True)
     address = req.get('address', None)
-    if address is not None:
+    publicKey = req.get('public', None)
+    if address is not None and publicKey is not None:
         flask_praetorian.current_user().address = address
+        db.session.commit()
+        flask_praetorian.current_user().publicKey = publicKey
         db.session.commit()
     ret = {'result': 'success'}
     return ret, 200   
@@ -138,7 +133,7 @@ def contacts():
     ret = {'result':res}
     return ret, 200
 
-#recvAddress, sendAddress, recvName, sendName, timestamp, contents
+#recvAddress, sendAddress, recvName, sendName, timestamp, recvContents, sendContents
 # Saves message into db
 @app.route('/api/savemessage', methods=['POST'])
 @cross_origin()
@@ -150,9 +145,10 @@ def savemessage():
     recvName = req.get('recvName', None)
     sendName = req.get('sendName', None)    
     timestamp = req.get('timestamp', None)
-    contents = req.get('contents', None)
+    recvContents = req.get('recvContents', None)
+    sendContents = req.get('sendContents', None)
     
-    psql.setMessage(recvAddress, sendAddress, recvName, sendName, timestamp, contents)
+    psql.setMessage(recvAddress, sendAddress, recvName, sendName, timestamp, recvContents, sendContents)
 
     ret = {'result': 'success'}
     return ret, 200
@@ -163,14 +159,10 @@ def savemessage():
 @flask_praetorian.auth_required
 def getmessage():
     req = flask.request.get_json(force=True)
-    raddress = req.get('recAddress', None)
+    raddress = req.get('recvAddress', None)
     saddress = req.get('sendAddress', None)
-    
-    #flask_praetorian.current_user().username
-    #flask_praetorian.current_user().address
-    
-    res = psql.getMessages(raddress, saddress)
 
+    res = psql.getMessages(raddress, saddress)
     ret = {'result':res}
     return ret, 200
 
@@ -178,12 +170,13 @@ def getmessage():
 @app.route('/api/logout', methods=['POST'])
 @cross_origin()
 def logout():
-    req = flask.request.get_json()        
+    req = flask.request.get_json(force=True)        
     if req is not None:
         token = req.get('token', None)        
         data = guard.extract_jwt_token(token)
         blacklist.add(data['jti'])
     return flask.jsonify(message='token blacklisted')
+
 
 # Refreshes an existing JWT
 @app.route('/api/refresh', methods=['POST'])
@@ -202,6 +195,43 @@ def protected():
     return {"username": flask_praetorian.current_user().username, "address": flask_praetorian.current_user().address}
 
 
+# Protected endpoint
+@app.route('/api/poor', methods=['POST'])
+@cross_origin()
+@flask_praetorian.auth_required
+def poor():
+    req = flask.request.get_json(force=True)
+    ret = {"result": 0} 
+    if req is not None:
+        address = req.get('address', None)             
+        res = etherum.reqest_founds(address,constants.PK)      
+        ret = {"result": 1}
+    return ret, 200
+
+# Protected endpoint
+@app.route('/api/public', methods=['POST'])
+@cross_origin()
+@flask_praetorian.auth_required
+def publicKey():
+    req = flask.request.get_json(force=True)
+    res = {"result": 0}
+    if req is not None:
+        address = req.get('address', None)           
+        username = req.get('username', None)
+        with app.app_context():
+            ret = db.session.query(User.publicKey).filter(User.address == address).first()
+        if (len(ret) > 0):
+            res = {"result": ret[0]}        
+    return res, 200
+
+# Protected endpoint
+@app.route('/api/provider', methods=['POST'])
+@cross_origin()
+def getProvider():    
+    res = {"result": constants.PROVIDER}        
+    return res, 200
+
+
 # Run the example
 if __name__ == '__main__':
-    app.run(host='192.168.1.11', port=5000)
+    app.run(host='0.0.0.0', port=5000)

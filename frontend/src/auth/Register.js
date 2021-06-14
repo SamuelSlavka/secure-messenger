@@ -2,16 +2,19 @@ import React, { useState } from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import Button from 'react-bootstrap/Button'
 import Form from 'react-bootstrap/Form'
-import Web3 from 'web3'
+//import Web3 from 'web3'
 
+const EthCrypto = require('eth-crypto');
 
-var serverAddr = 'https://slavka.one'
-serverAddr = 'http://192.168.1.11:5000'
+var serverAddr = 'https://slavka.one';
+
 
 async function loadBlockchainData(password) {
-    const web3 = new Web3('https://rinkeby.infura.io/v3/1e87c1070ba04d9a8921909bd0f76091');
+    //const web3 = new Web3('');
     //create account
-    const acc = web3.eth.accounts.create(web3.utils.randomHex(32));
+    const acc = EthCrypto.createIdentity();
+    //const acc = web3.eth.accounts.create(web3.utils.randomHex(32));
+
     return acc;
 }
 
@@ -41,10 +44,10 @@ export function Register() {
 
             const acc = await loadBlockchainData(username);
             opts = {
-                'address': acc.address
+                'address': acc.address,
+                'public': acc.publicKey
             };
-            console.log(acc.address)
-            console.log(acc.privateKey)
+            
             //fetch save account address in server
             await fetch(serverAddr + '/api/saveAddress', {
                 method: 'post',
@@ -54,6 +57,7 @@ export function Register() {
 
             // stores encripterd private key in local storage   
             localStorage.setItem('privateKey', (CryptoJS.AES.encrypt(acc.privateKey, password )));
+            localStorage.setItem('publicKey', acc.publicKey);
             sessionStorage.setItem('passwdKey', password);
 
             setResult("Your private key was encrypted and saved localy. If you loose it, you loose acces to your account. You can view it in the Account tab.");

@@ -1,10 +1,15 @@
 # End to end encrypted messaaging web app
+
 using Ethereum blockchain for authentication and integrity checking. 
+
+## How it works
+After user registration, private key, public keyes and account address are generated. When client sends a message, smart contract method is invoked to store checksum of the unencrypted message. Afterwards the message is encrypted one copy with senders public key and second with recievers. Both encryptions are stored in server db.
+
+After client recieves message, it is decrypted and checked against the checksum. Only then it is shown to client.
 
 #### Dependencies:
   docker-compose <br>
   docker <br>
-  geth <br>
   truffle <br>
   python <br>
 
@@ -13,12 +18,6 @@ using Ethereum blockchain for authentication and integrity checking.
     
     ./ssl_renew.sh
 
-  run geth local node:
-    
-    geth --rinkeby  --syncmode="light" --http.addr 192.168.1.11 --allow-insecure-unlock -keystore ~/.ethereum/keystore --cache=4096 --http --http.api eth,net,web3,personal --rpccorsdomain "https://slavka.one"
-
-
- 
   
 #### Starting server:
     docker-compose up

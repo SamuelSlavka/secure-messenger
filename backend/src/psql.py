@@ -1,13 +1,12 @@
-import psycopg2
-#TODO
+import psycopg2, constants
+
 def connectDB():
    return psycopg2.connect(
-         host='0.0.0.0', database='postgres', user='postgres', password="postgres"
-      )
-   return psycopg2.connect(
-         host='postgres', database='postgres', user='postgres', password="postgres"
+         host=constants.HOST, database=constants.DATABASE, user=constants.USER, password=constants.PASSWORD
       )
 
+
+#creates initila tables
 def createTables():
    commands = (
       """
@@ -24,7 +23,8 @@ def createTables():
          recvName VARCHAR(255) NOT NULL,
          sendName VARCHAR(255) NOT NULL,
          timestamp VARCHAR(255) NOT NULL,
-         contents VARCHAR NOT NULL
+         recvContents VARCHAR NOT NULL,
+         sendContents VARCHAR NOT NULL
          )
       """)
    conn = None
@@ -52,9 +52,8 @@ def createTables():
 def getContacts(address):
    conn = connectDB()
    cur = conn.cursor()
-
-   query = "SELECT DISTINCT recvAddress,recvName FROM message WHERE sendAddress='"+address+"' UNION "+"SELECT DISTINCT sendAddress,sendName FROM message WHERE recvAddress='"+address+"';"
-   cur.execute(query)
+   
+   cur.execute("SELECT DISTINCT recvAddress,recvName FROM message WHERE (sendAddress=%s) UNION SELECT DISTINCT sendAddress,sendName FROM message WHERE (recvAddress=%s);",(address,address))
    res = []
    for row in cur:
       res.append(row)
@@ -63,6 +62,7 @@ def getContacts(address):
    conn.close()
    return res
 
+#return contract info  from db
 def getContract():
    conn = connectDB()
    cur = conn.cursor()
@@ -74,7 +74,7 @@ def getContract():
    conn.close()
    return res
    
-
+#stores contract info to db
 def setContract(address, abi):
    conn = connectDB()
    cur = conn.cursor()
@@ -86,10 +86,11 @@ def setContract(address, abi):
    cur.close()
    conn.close()
 
+#return all mesages between two addreses
 def getMessages(raddress, saddress):
    conn = connectDB()
    cur = conn.cursor()
-   cur.execute("SELECT * FROM message WHERE (recvAddress=%s AND sendAddress=%s) OR (sendAddress=%s AND recvAddress=%s) = %s", (raddress, saddress, raddress, saddress))
+   cur.execute("SELECT * FROM message WHERE (recvAddress=%s AND sendAddress=%s) OR (recvAddress=%s AND sendAddress=%s);", (raddress, saddress, saddress, raddress))
    res = []
    for row in cur:
       res.append(row)
@@ -97,17 +98,12 @@ def getMessages(raddress, saddress):
    conn.close()
    return res
 
-def setMessage(recvAddress, sendAddress, recvName, sendName, timestamp, contents):
+#save message to db
+def setMessage(recvAddress, sendAddress, recvName, sendName, timestamp, recvContents, sendContents):
    conn = connectDB()
    cur = conn.cursor()
    
-   cur.execute("INSERT INTO message (recvAddress, sendAddress, recvName, sendName, timestamp, contents) VALUES (%s, %s, %s, %s, %s, %s)", (recvAddress, sendAddress, recvName, sendName, timestamp, contents))
+   cur.execute("INSERT INTO message (recvAddress, sendAddress, recvName, sendName, timestamp, recvContents, sendContents) VALUES (%s, %s, %s, %s, %s, %s, %s)", (recvAddress, sendAddress, recvName, sendName, timestamp, recvContents, sendContents))
    conn.commit()
    cur.close()
    conn.close()
-
-#createTables()
-#setContract("addr","abi")
-#print(getContract())
-#setMessage("addr","name",'time','contsasfasfsafasfasf asfads fadsfa ')
-#print(getMessage("addr","name",'time'))

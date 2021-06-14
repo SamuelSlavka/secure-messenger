@@ -1,11 +1,10 @@
 import React, { useState, useLayoutEffect } from 'react';
 
-var serverAddr = 'https://slavka.one'
-serverAddr = 'http://192.168.1.11:5000'
+var serverAddr = 'https://slavka.one';
 
 export function Home() {
   const [transaction, setTransaction] = useState('');
-
+  //fetches last transaction trought server from blockhain
   async function fetchMyAPI() {
     const response = await fetch(serverAddr+'/api/');
     const blocks = await response.json();

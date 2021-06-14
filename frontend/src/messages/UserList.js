@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import ListGroup from 'react-bootstrap/ListGroup'
 import Nav from 'react-bootstrap/Nav'
 import Row from 'react-bootstrap/Row'
@@ -13,6 +13,9 @@ import { MessageList } from '../messages/MessageList';
 
 
 export function UserList(args) {
+  const address = args.props.address;
+  //auto refresh state
+  const [interv, setInterv] = useState(-1);
   // Modals
   const [showPK, setShowPK] = useState(false);
   const [showCreate, setShowCreate] = useState(false);
@@ -25,11 +28,9 @@ export function UserList(args) {
   const handleShowCreate = () => setShowCreate(true);
   const handleAddressChange = (e) => { setContactAddress(e.target.value); };
   const handleUsernameChange = (e) => { setContactUsername(e.target.value); };
-
-  const handlePoor = (e) => {
-    askForMoney(args.props.address);
-  }
-
+  const handlePoor = (e) => { askForMoney(address); }
+  
+  //ask for founds tooltip
   const renderTooltip = (props) => (
     <Tooltip id="button-tooltip" {...props}>
       You will recieve your founds shortly, please dont spam this button :D
@@ -37,15 +38,20 @@ export function UserList(args) {
   );
 
   const [contactList, setContactList] = useState({ contacts: [] });
-  const [contact, setContact] = useState({ result: false, contactName: "", contactAddress: "", address: "", username: "", info: "" });
+  const [contact, setContact] = useState({ result: false, contactName: "", contactAddress: "",address: "", username: "", info: "" });
 
   const [balance, setBalance] = useState(0);
 
-  //saved data and redirects
+  //stops timer and redircts to messages
   function alertClicked(val) {
+    if(interv !== -1){
+      clearInterval(interv);
+      setInterv(-1);
+    }
     setContact({ ...contact, result: true, contactName: val.username, contactAddress: val.address, address: args.props.address, username: args.props.username, info: args.props.info });
   }
 
+  //Contract element
   const Contact = (data) => {
     return (
       <ListGroup.Item action onClick={() => alertClicked(data.props)}>
@@ -64,11 +70,14 @@ export function UserList(args) {
     setContactList({ contacts: [...contactList.contacts, data] })
   }
 
-
-  const [ref, setRef] = useState(false);
-  if (!ref) {
-    //fetches account balance
+  useEffect(() => {
+    var timerID = -1;
+    //periodically fetches balance and contract list
     async function fetchAuth() {
+      //store time ID
+      if(timerID !== -1)
+        setInterv(timerID);
+      //fetches account balance
       if (args.props.address !== null && args.props.address !== '') {
         let nb = await getBalance(args.props.address);
         setBalance(nb);
@@ -77,16 +86,28 @@ export function UserList(args) {
       if (args.props.address !== null && args.props.address !== '') {
         let nb = await getContacts(args.props.address);
         let data = []
-        nb.result.forEach(el => {
-          data.push({ "username": el[1], "address": el[0] })
-        });
-        setContactList({ contacts: [...contactList.contacts, ...data] });
+        if (typeof nb.result !== 'undefined' && nb.result.length) {
+          nb.result.forEach(el => {
+            data.push({ "username": el[1], "address": el[0] })
+          });
+          setContactList({ contacts: [...contactList.contacts, ...data] });
+        }
       }
     }
+    
     fetchAuth();
-    setRef(true);
-  }
-
+    //sets timer for next fetch
+    if(!contact.result){
+      timerID = setInterval(() => {
+        if(!contact.result){        
+          fetchAuth();
+        }
+      }, 20000);
+    }
+    return () => {
+      clearInterval(timerID)
+    }
+  }, [args.props.address]);
 
   return [
     contact.result
@@ -137,10 +158,10 @@ export function UserList(args) {
             <Nav.Link disabled><h3>Contacts</h3></Nav.Link>
           </Nav.Item>
           <Nav.Item>
-            <Nav.Link disabled>Your address: {args.props.address}</Nav.Link>
+            <Nav.Link disabled className="accountInfo">Your address: {address}</Nav.Link>
           </Nav.Item>
           <Nav.Item>
-            <Nav.Link disabled>Your balance: {balance}</Nav.Link>
+            <Nav.Link disabled className="accountInfo">Your balance: {balance}</Nav.Link>
           </Nav.Item>
         </Nav>
         <Nav>

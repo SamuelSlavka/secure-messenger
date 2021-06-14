@@ -6,6 +6,8 @@ database.db
 /src/__pycache__
 /__pycache__
 .flaskenv
+constants.py
+/src/constants.py
 
 # dependencies
 /node_modules
