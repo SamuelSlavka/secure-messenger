@@ -1,11 +1,11 @@
-# End to end encrypted messaaging web app
+# End to end encrypted messaging web app
 
 using Ethereum blockchain for authentication and integrity checking. 
 
 ## How it works
-After user registration, private key, public keyes and account address are generated. When client sends a message, smart contract method is invoked to store checksum of the unencrypted message. Afterwards the message is encrypted one copy with senders public key and second with recievers. Both encryptions are stored in server db.
+After user registration, private key, public keys, and account address are generated. When a client sends a message, smart contract method is invoked to store checksum of the unencrypted message. Afterward the message is encrypted one copy with the sender's public key and the second with receivers. Both encryptions are stored in server db.
 
-After client recieves message, it is decrypted and checked against the checksum. Only then it is shown to client.
+After the client receives a message, it is decrypted and checked against the checksum. Only then it is shown to the client.
 
 #### Dependencies:
   docker-compose <br>
