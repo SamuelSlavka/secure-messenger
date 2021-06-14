@@ -1,0 +1,11 @@
+flask
+flask-restful
+flask-marshmallow
+flask_sqlalchemy
+flask-praetorian
+flask_cors
+python-dotenv
+web3
+solc
+py-solc
+psycopg2

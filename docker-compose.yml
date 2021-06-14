@@ -1,19 +1,20 @@
 version: '3'
 
 services:
-  backend:    
+  backend:  
     build:
       context: ./backend
       dockerfile: Dockerfile
     restart: unless-stopped
     ports: 
-      - '8080:8080'
+      - '5000:5000'
     volumes:    
       - certbot-etc:/etc/letsencrypt
+      - .:/backend/src
     networks:
       - app-network
-    links:
-      - mongo
+    env_file:
+      - .env
 
   frontend:
     build: ./frontend
@@ -35,9 +36,7 @@ services:
       - ./nginx-conf:/etc/nginx/conf.d
       - certbot-etc:/etc/letsencrypt
       - certbot-var:/var/lib/letsencrypt
-      - dhparam:/etc/ssl/certs
-    depends_on:
-      - backend
+      - dhparam:/etc/ssl/certs  
     networks:
       - app-network
 
@@ -48,35 +47,35 @@ services:
       - certbot-etc:/etc/letsencrypt
       - certbot-var:/var/lib/letsencrypt
       - web-root:/var/www/html
-    depends_on:
-      - nginx
     command: certonly --webroot --webroot-path=/var/www/html --email slavka.samuel@gmail.com --agree-tos --no-eff-email --staging -d slavka.one  -d www.slavka.one
 
-  mongo:
-    image: mongo
-    ports:
-      - "27017:27017"
-    networks:
-      - app-network
-    command: mongod      
-  mongo-express:
-    image: mongo-express
+  postgres:
+    image: postgres:10.5
+    restart: unless-stopped
     environment:
-      - ME_CONFIG_MONGODB_SERVER=mongo
-      - ME_CONFIG_MONGODB_PORT=27017
-      - ME_CONFIG_MONGODB_ENABLE_ADMIN=true
-      - ME_CONFIG_MONGODB_AUTH_DATABASE=admin
-      - ME_CONFIG_MONGODB_AUTH_USERNAME=admin
-      - ME_CONFIG_MONGODB_AUTH_PASSWORD=admin
-      - ME_CONFIG_BASICAUTH_USERNAME=admin
-      - ME_CONFIG_BASICAUTH_PASSWORD=admin
-    depends_on:
-      - mongo
+      - POSTGRES_DB=postgres
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    expose:
+      - '5432'
+    ports:
+      - 5432:5432
+    networks:
+      - app-network
+    links:
+      - backend
+    volumes: 
+      - ./postgres-data:/var/lib/postgresql/data
+      - ./sql/create_tables.sql:/docker-entrypoint-initdb.d/create_tables.sql
+
+  adminer:
+    image: adminer
+    restart: unless-stopped
     networks:
       - app-network
     ports:
-      - "8081:8081"
-      
+      - 8080:8080
+
   plex:
     image: ghcr.io/linuxserver/plex
     container_name: plex
@@ -93,6 +92,7 @@ services:
       - /mnt/mediastorage/books:/books
       - /mnt/mediastorage/music:/music
     restart: unless-stopped
+
 volumes:
   certbot-etc:
   certbot-var:
@@ -108,6 +108,8 @@ volumes:
       type: none
       device: /home/rpi/slavkaone/dhparam/
       o: bind
+  db-data:
+  web-data:
 
 networks:
   app-network:

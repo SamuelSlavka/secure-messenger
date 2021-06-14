@@ -1,10 +1,13 @@
-# WAPproj2
+# Flask backend
+REST API backend communicating with psql and sqlalchemy.
 
 #### Setup:
-    npm i
+    source auth/bin/activate
+    python api.py
+
   
 #### Starting server:
-    node app.js
+    flask run
   
  #### Execution:
-   http://localhost:8080/<query>
+   http://localhost:5000/<query>
