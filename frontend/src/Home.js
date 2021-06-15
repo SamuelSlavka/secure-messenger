@@ -16,7 +16,7 @@ export function Home() {
   }, []);
 
   return (
-    <div>
+    <div className="home">
       <h2>Latest transaction on ETH:</h2><br />
       <pre>{transaction}</pre>
     </div>

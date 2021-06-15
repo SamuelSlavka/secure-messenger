@@ -71,13 +71,17 @@ export async function sendMessageToAddr(info, message, sendAddress, recvAddress,
   try {
     // == DB ==
     const PK = getPK();
-    //creates two encryptions so that both sides can read later on
-    
-    const recvPublic = await getPublicKey(recvName, recvAddress)
-    const recvEncrypted = await encryptMessage(message, recvPublic, PK)
-    const sendPublic = await getPublicKey(sendName, sendAddress)
-    const sendEncrypted = await encryptMessage(message, sendPublic, PK)
+    //gets public keys for encrypting
+    let [recvPublic, sendPublic] = await Promise.all([
+      getPublicKey(recvName, recvAddress),
+      getPublicKey(sendName, sendAddress)
+    ]);
 
+    //creates two encryptions so that both sides can read later on
+    let [recvEncrypted, sendEncrypted] = await Promise.all([
+      encryptMessage(message, recvPublic, PK),
+      encryptMessage(message, sendPublic, PK)
+    ]);
 
     const token = sessionStorage.getItem('token');
     //save transaction to psql db
@@ -103,20 +107,24 @@ export async function sendMessageToAddr(info, message, sendAddress, recvAddress,
     const contract = new web3.eth.Contract(JSON.parse(info.abi), info.address);
     const transaction = contract.methods.createMessage(checksum, recvAddress);
 
+    let [balance, gasPrice, estimate] = await Promise.all([
+      web3.eth.getBalance(sendAddress),
+      web3.eth.getGasPrice(),
+      transaction.estimateGas({ from: account.address })
+    ]);
+
     //message params
     const options = {
       to: info.address,
       data: transaction.encodeABI(),
-      gas: await transaction.estimateGas({ from: account.address }),
-      gasPrice: await web3.eth.getGasPrice() 
+      gas: estimate,
+      gasPrice: gasPrice
     };
 
     //check if account has enought founds
-    const balance = await web3.eth.getBalance(sendAddress);
-    const gasPrice = await web3.eth.getGasPrice();
-    const limit = await web3.eth.estimateGas(options);
-    if (balance < (gasPrice * limit)) {
-      console.log('cost: ' + gasPrice * limit);
+    //const limit = await web3.eth.estimateGas(options);
+    if (balance < (gasPrice * estimate)) {
+      console.log('cost: ' + gasPrice * estimate);
       console.log('balance: ' + balance);
       return { 'Error': false, 'body': 'Not enought founds' };
     }
@@ -136,6 +144,7 @@ export async function sendMessageToAddr(info, message, sendAddress, recvAddress,
 //get encrypted messages from db and checksums from blockchain
 //decrypt and check mesaages then return
 export async function getMessagesFromAddr(info, recvAddress, sendAddress) {
+  let result = []
   try {
     const token = sessionStorage.getItem('token');
     const PK = getPK();
@@ -145,23 +154,26 @@ export async function getMessagesFromAddr(info, recvAddress, sendAddress) {
     // unlock wallet
     web3.eth.accounts.wallet.add(PK)
     const account = web3.eth.accounts.wallet[0].address
-    //call get method with wallet
-    const contractRes = await contract.methods.getMessages(recvAddress, sendAddress).call({ from: account });
-    var contractChecks = Array.from(contractRes, x => x[0]);
-
-    //fetch same mesasges form db
-    var res = await fetch(serverAddr + '/api/getmessages', {
-      method: 'post',
-      headers: { Authorization: 'Bearer ' + token },
-      body: JSON.stringify({
-        recvAddress: recvAddress,
-        sendAddress: sendAddress
+    
+    
+    let [contractRes, res] = await Promise.all([
+      //call get method with wallet
+      contract.methods.getMessages(recvAddress, sendAddress).call({ from: account }),
+      //fetch same mesasges form db
+      fetch(serverAddr + '/api/getmessages', {
+        method: 'post',
+        headers: { Authorization: 'Bearer ' + token },
+        body: JSON.stringify({
+          recvAddress: recvAddress,
+          sendAddress: sendAddress
+        })
       })
-    });
+    ]);
+    
+    const contractChecks = Array.from(contractRes, x => x[0]);
     const dbRes = await res.json();
 
-    let db = dbRes.result;
-    var result = []
+    let db = dbRes.result;    
 
     for(let i=0; i < db.length; i++){
       let decr = await decryptMessage(db[i], account, PK);      

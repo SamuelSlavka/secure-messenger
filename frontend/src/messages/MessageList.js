@@ -80,7 +80,7 @@ export function MessageList(args) {
       timerID = setInterval(() => {
         if (!switchState)
           fetchAuth();
-      }, 8000);
+      }, 4000);
     }
     return () => {
       clearInterval(timerID)
@@ -93,7 +93,7 @@ export function MessageList(args) {
     switchState
       ? <UserList key="UserList" props={args.props} />
       :
-      <div key='nav'>
+      <div key='nav' className="resultDiv">
         <Nav>
           <Nav.Item>
             <Nav.Link disabled><h3>{args.props.contactName}</h3></Nav.Link>

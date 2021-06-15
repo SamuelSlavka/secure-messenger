@@ -66,10 +66,10 @@ export function UserList(args) {
   const handleSaveCloseCreate = async (username, address) => {
     try {
       let addr = address;
-      if(address === '')
+      if (address === '')
         addr = await getAddressFromName(username)
-      
-      if( await isUserRegistred(username,addr)){
+
+      if (await isUserRegistred(username, addr)) {
         const data = { "username": username, "address": addr }
         setShowCreate(false);
         setContactList({ contacts: [...contactList.contacts, data] })
@@ -77,9 +77,9 @@ export function UserList(args) {
     } catch (error) {
       console.error(error);
     }
-    
+
   }
-    
+
   useEffect(() => {
     var timerID = -1;
     //periodically fetches balance and contract list
@@ -87,22 +87,28 @@ export function UserList(args) {
       //store time ID
       if (timerID !== -1)
         setInterv(timerID);
-      //fetches account balance
-      if (args.props.address !== null && args.props.address !== '') {
-        let nb = await getBalance(args.props.address);
-        setBalance(nb);
-      }
-      //fetches contact list
-      if (args.props.address !== null && args.props.address !== '') {
-        let nb = await getContacts(args.props.address);
-        let data = []
-        if (typeof nb.result !== 'undefined' && nb.result.length) {
-          nb.result.forEach(el => {
-            data.push({ "username": el[1], "address": el[0] })
-          });
-          setContactList({ contacts: [...contactList.contacts, ...data] });
+      //fetches account balance and contact list
+      try {
+        if (args.props.address !== null && args.props.address !== '') {
+          let [nb, contacts] = await Promise.all([
+            getBalance(args.props.address),
+            getContacts(args.props.address)
+          ]);
+
+          setBalance(nb);
+          
+          let data = []
+          if (typeof contacts.result !== 'undefined' && contacts.result.length) {
+            contacts.result.forEach(el => {
+              data.push({ "username": el[1], "address": el[0] })
+            });
+            setContactList({ contacts: [...contactList.contacts, ...data] });
+          }
         }
       }
+      catch (err) {
+        console.log(err);
+      };
     }
 
     fetchAuth();
@@ -112,13 +118,13 @@ export function UserList(args) {
         if (!contact.result) {
           fetchAuth();
         }
-      }, 8000);
+      }, 4000);
     }
     return () => {
       clearInterval(timerID)
     }
     // eslint-disable-next-line
-  }, [args.props.address, args.props.info]); 
+  }, [args.props.address, args.props.info]);
 
   return [
     contact.result
@@ -142,7 +148,7 @@ export function UserList(args) {
             <Modal.Title>Create a new contact</Modal.Title>
           </Modal.Header>
           <Modal.Body>
-          <Form.Label>Insert only username or both</Form.Label>
+            <Form.Label>Insert only username or both</Form.Label>
             <Form>
               <Form.Group controlId="formBasicUsername">
                 <Form.Label>Username</Form.Label>
