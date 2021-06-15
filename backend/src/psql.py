@@ -6,7 +6,7 @@ def connectDB():
       )
 
 
-#creates initila tables
+#creates initial tables
 def createTables():
    commands = (
       """
@@ -107,3 +107,11 @@ def setMessage(recvAddress, sendAddress, recvName, sendName, timestamp, recvCont
    conn.commit()
    cur.close()
    conn.close()
+
+#removes all messages from db
+def dropUsers():
+   conn = connectDB()
+   cur = conn.cursor()
+   cur.execute("DROP TABLE message")
+   conn.commit()
+   createTables()   

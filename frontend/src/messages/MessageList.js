@@ -80,11 +80,12 @@ export function MessageList(args) {
       timerID = setInterval(() => {
         if (!switchState)
           fetchAuth();
-      }, 15000);
+      }, 8000);
     }
     return () => {
       clearInterval(timerID)
     }
+    // eslint-disable-next-line
   }, [args.props.address]);
 
 

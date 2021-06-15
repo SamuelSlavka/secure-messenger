@@ -8,20 +8,20 @@ import Button from 'react-bootstrap/Button'
 import Form from 'react-bootstrap/Form'
 import Tooltip from 'react-bootstrap/Tooltip'
 import OverlayTrigger from 'react-bootstrap/OverlayTrigger'
-import { getBalance, getPK, getContacts, askForMoney } from './web3Func';
+import { getBalance, getPK, getContacts, askForMoney, getAddressFromName, isUserRegistred } from './web3Func';
 import { MessageList } from '../messages/MessageList';
 
 
 export function UserList(args) {
   const address = args.props.address;
-  //auto refresh state
+  // Auto refresh state
   const [interv, setInterv] = useState(-1);
   // Modals
   const [showPK, setShowPK] = useState(false);
   const [showCreate, setShowCreate] = useState(false);
   const [contactUsername, setContactUsername] = useState('');
   const [contactAddress, setContactAddress] = useState('');
-
+  // Dynamic page elements
   const handleClosePK = () => setShowPK(false);
   const handleShowPK = () => setShowPK(true);
   const handleCloseCreate = () => setShowCreate(false);
@@ -29,22 +29,21 @@ export function UserList(args) {
   const handleAddressChange = (e) => { setContactAddress(e.target.value); };
   const handleUsernameChange = (e) => { setContactUsername(e.target.value); };
   const handlePoor = (e) => { askForMoney(address); }
-  
+  //Dynamic information elements
+  const [contactList, setContactList] = useState({ contacts: [] });
+  const [contact, setContact] = useState({ result: false, contactName: "", contactAddress: "", address: "", username: "", info: "" });
+  const [balance, setBalance] = useState(0);
+
   //ask for founds tooltip
   const renderTooltip = (props) => (
-    <Tooltip id="button-tooltip" {...props}>
+    <Tooltip id="tooltip-top" {...props}>
       You will recieve your founds shortly, please dont spam this button :D
     </Tooltip>
   );
 
-  const [contactList, setContactList] = useState({ contacts: [] });
-  const [contact, setContact] = useState({ result: false, contactName: "", contactAddress: "",address: "", username: "", info: "" });
-
-  const [balance, setBalance] = useState(0);
-
   //stops timer and redircts to messages
-  function alertClicked(val) {
-    if(interv !== -1){
+  function contactClicked(val) {
+    if (interv !== -1) {
       clearInterval(interv);
       setInterv(-1);
     }
@@ -54,7 +53,7 @@ export function UserList(args) {
   //Contract element
   const Contact = (data) => {
     return (
-      <ListGroup.Item action onClick={() => alertClicked(data.props)}>
+      <ListGroup.Item action onClick={() => contactClicked(data.props)}>
         <Row>
           <Col><p>{data.props.username}</p></Col>
           <Col><p>{data.props.address}</p></Col>
@@ -64,18 +63,29 @@ export function UserList(args) {
   };
 
   //creates a new contact 
-  const handleSaveCloseCreate = (username, address) => {
-    const data = { "username": username, "address": address }
-    setShowCreate(false);
-    setContactList({ contacts: [...contactList.contacts, data] })
+  const handleSaveCloseCreate = async (username, address) => {
+    try {
+      let addr = address;
+      if(address === '')
+        addr = await getAddressFromName(username)
+      
+      if( await isUserRegistred(username,addr)){
+        const data = { "username": username, "address": addr }
+        setShowCreate(false);
+        setContactList({ contacts: [...contactList.contacts, data] })
+      }
+    } catch (error) {
+      console.error(error);
+    }
+    
   }
-
+    
   useEffect(() => {
     var timerID = -1;
     //periodically fetches balance and contract list
     async function fetchAuth() {
       //store time ID
-      if(timerID !== -1)
+      if (timerID !== -1)
         setInterv(timerID);
       //fetches account balance
       if (args.props.address !== null && args.props.address !== '') {
@@ -94,20 +104,21 @@ export function UserList(args) {
         }
       }
     }
-    
+
     fetchAuth();
     //sets timer for next fetch
-    if(!contact.result){
+    if (!contact.result) {
       timerID = setInterval(() => {
-        if(!contact.result){        
+        if (!contact.result) {
           fetchAuth();
         }
-      }, 20000);
+      }, 8000);
     }
     return () => {
       clearInterval(timerID)
     }
-  }, [args.props.address]);
+    // eslint-disable-next-line
+  }, [args.props.address, args.props.info]); 
 
   return [
     contact.result
@@ -131,6 +142,7 @@ export function UserList(args) {
             <Modal.Title>Create a new contact</Modal.Title>
           </Modal.Header>
           <Modal.Body>
+          <Form.Label>Insert only username or both</Form.Label>
             <Form>
               <Form.Group controlId="formBasicUsername">
                 <Form.Label>Username</Form.Label>
@@ -152,7 +164,6 @@ export function UserList(args) {
             </Button>
           </Modal.Footer>
         </Modal>
-
         <Nav>
           <Nav.Item>
             <Nav.Link disabled><h3>Contacts</h3></Nav.Link>
@@ -170,7 +181,7 @@ export function UserList(args) {
           </Nav.Item>
           <Nav.Item>
             <OverlayTrigger
-              placement="right"
+              placement="top"
               delay={{ show: 250, hide: 400 }}
               overlay={renderTooltip}>
               <Nav.Link eventKey="link-3" onClick={handlePoor} >Reqest founds</Nav.Link>

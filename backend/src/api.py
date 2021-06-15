@@ -43,22 +43,24 @@ res = etherum.init_eth_with_PK(constants.PK)
 
 if not res['result']:
     sys.exit("Error connecting to ETH")
+# if the contract is new reset user and message dbs    
 if res['new_contract']:
     with app.app_context():
         db.drop_all()
         db.create_all()        
+        psql.dropUsers()
 
 # Initialize the flask-praetorian instance for the app
 guard.init_app(app, User, is_blacklisted=is_blacklisted)
 
-# Set up some routes
+# Returns last transaction on current blockchain
 @app.route('/api/')
 @cross_origin()
 def home():
     ret = etherum.get_last_transaction()
     return ret, 200
 
-# Logs in user
+# Creates user in db
 @app.route('/api/register', methods=['POST'])
 @cross_origin()
 def register():
@@ -105,7 +107,7 @@ def info():
     ret = {'address': res[1], 'abi':res[2], 'userAddr':flask_praetorian.current_user().address, 'username':flask_praetorian.current_user().username}
     return ret, 200
 
-# Adds address
+# Saves address and public key to the db
 @app.route('/api/saveAddress', methods=['POST'])
 @cross_origin()
 @flask_praetorian.auth_required
@@ -121,7 +123,7 @@ def saveAddr():
     ret = {'result': 'success'}
     return ret, 200   
 
-# Adds address and return contract info
+# Returns list of users that address has communicated with
 @app.route('/api/contacts', methods=['POST'])
 @cross_origin()
 @flask_praetorian.auth_required
@@ -133,7 +135,6 @@ def contacts():
     ret = {'result':res}
     return ret, 200
 
-#recvAddress, sendAddress, recvName, sendName, timestamp, recvContents, sendContents
 # Saves message into db
 @app.route('/api/savemessage', methods=['POST'])
 @cross_origin()
@@ -187,7 +188,7 @@ def refresh():
     ret = {'access_token': new_token}
     return ret, 200
 
-# Protected endpoint
+# Retruns current user username and password
 @app.route('/api/protected')
 @cross_origin()
 @flask_praetorian.auth_required
@@ -195,7 +196,7 @@ def protected():
     return {"username": flask_praetorian.current_user().username, "address": flask_praetorian.current_user().address}
 
 
-# Protected endpoint
+# Sends some eth to address
 @app.route('/api/poor', methods=['POST'])
 @cross_origin()
 @flask_praetorian.auth_required
@@ -208,7 +209,7 @@ def poor():
         ret = {"result": 1}
     return ret, 200
 
-# Protected endpoint
+# Return public key for combination of username and address
 @app.route('/api/public', methods=['POST'])
 @cross_origin()
 @flask_praetorian.auth_required
@@ -224,14 +225,49 @@ def publicKey():
             res = {"result": ret[0]}        
     return res, 200
 
-# Protected endpoint
+# Returns provider URL
 @app.route('/api/provider', methods=['POST'])
 @cross_origin()
 def getProvider():    
     res = {"result": constants.PROVIDER}        
     return res, 200
 
+# Return address for given username
+@app.route('/api/getUserAddress', methods=['POST'])
+@cross_origin()
+@flask_praetorian.auth_required
+def addressGetter():
+    req = flask.request.get_json(force=True)
+    res = {"result": 0}
+    if req is not None:      
+        username = req.get('username', None)
+        with app.app_context():
+            ret = db.session.query(User.address).filter(User.username == username).first()
+        if ret is not None:
+            res = {"result": ret[0]}        
+    return res, 200
 
-# Run the example
+
+# Return address for given username
+@app.route('/api/isValid', methods=['POST'])
+@cross_origin()
+@flask_praetorian.auth_required
+def isValid():
+    req = flask.request.get_json(force=True)
+    res = {"result": 0}
+    if req is not None:      
+        username = req.get('username', None)
+        address = req.get('address', None)
+        with app.app_context():
+            ret1 = db.session.query(User.address).filter(User.username == username).first()
+            ret2 = db.session.query(User.address).filter(User.address == address).first()
+        if ret1 is not None and ret2 is not None:
+            if (len(ret1) > 0 and ret1 == ret2):
+                res = {"result": 1}        
+    return res, 200
+
+
+
+# Run the server
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)

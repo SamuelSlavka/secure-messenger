@@ -6,7 +6,8 @@ let web3 = new Web3();
 
 var serverAddr = 'https://slavka.one';
 
-web3.setProvider(new web3.providers.HttpProvider('https://rinkeby.infura.io/v3/1e87c1070ba04d9a8921909bd0f76091'));
+web3.setProvider(new web3.providers.WebsocketProvider('wss://rinkeby.infura.io/ws/v3/1e87c1070ba04d9a8921909bd0f76091'));
+
 
 //fetch contract address and abi
 export async function getContractInfo() {
@@ -271,6 +272,57 @@ export async function getPublicKey(username, address) {
   catch (exception_var) {
     console.log(exception_var)
     res = "No pulic key found";
+  }
+  finally {
+    return res;
+  }
+}
+
+//return address for username
+export async function getAddressFromName(username) {
+  var res = "";
+  const token = sessionStorage.getItem('token');
+  try {
+    const response = await fetch(serverAddr + '/api/getUserAddress', {
+      method: 'post',
+      headers: { Authorization: 'Bearer ' + token },
+      body: JSON.stringify({
+        username: username
+      })
+    })
+    let ret = await response.json();
+    res = ret.result;
+  }
+  catch (exception_var) {
+    console.log(exception_var)
+    res = "";
+  }
+  finally {
+    return res;
+  }
+}
+
+//return public key of adress
+export async function isUserRegistred(username, address) {
+  var res = false;
+  const token = sessionStorage.getItem('token');
+  try {
+    const response = await fetch(serverAddr + '/api/isValid', {
+      method: 'post',
+      headers: { Authorization: 'Bearer ' + token },
+      body: JSON.stringify({
+        username: username,
+        address: address
+      })
+    })
+    let ret = await response.json();
+    console.log(ret)
+    if(ret.result === 1)
+      res = true;
+  }
+  catch (exception_var) {
+    console.log(exception_var)
+    res = false;
   }
   finally {
     return res;
