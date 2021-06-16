@@ -130,7 +130,7 @@ export function UserList(args) {
     contact.result
       ? <MessageList key='MessageList' props={contact} />
       :
-      <div key='top'>
+      <div key='top' className="contacts">
         <Modal dialogClassName="modal-90w" show={showPK} onHide={handleClosePK} animation={false}>
           <Modal.Header closeButton>
             <Modal.Title> <p> Write this down! </p> </Modal.Title>

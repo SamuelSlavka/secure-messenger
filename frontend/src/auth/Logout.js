@@ -8,21 +8,23 @@ export function Logout() {
   useEffect(() => {
     // blacklists token for further use
     async function fetchAuth() {
-      const token = await sessionStorage.getItem('token');
-      
-      if (token !== null) {
-        //sends directive to blacklist JWT
-        const response = await fetch(serverAddr + '/api/logout', {
-          method: 'post',
-          headers: { Authorization: 'Bearer ' + token },
-          body: { token: token }
-        })
-        const json = await response.json();
+      const token = sessionStorage.getItem('token');
 
-        if (response && response.status === 401) 
-          setMessage("Failed to logout.");      
-        if (json && json.message) 
-          setMessage(json.message);              
+      if (token !== null) {
+        try {
+          //sends directive to blacklist JWT
+          const response = await fetch(serverAddr + '/api/logout', {
+            method: 'post',
+            headers: { 'Authorization': 'Bearer ' + token },
+            body: { 'token': token }
+          })
+          const json = await response.json();
+          setMessage("Logged out: "+json.result);
+        }
+        catch (e) {
+          console.log(e)
+          setMessage("Failed to logout: " + e);
+        }
       }
       else
         setMessage("You are not logged in");

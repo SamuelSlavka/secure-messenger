@@ -15,8 +15,8 @@ body {
 .results {
   margin-top: 30px;
   padding-bottom: 60px;
-  padding-left: 0px;
-  padding-right: 0px;
+  padding-left: 30px;
+  padding-right: 30px;
 }
 
 .home {
@@ -33,6 +33,11 @@ body {
 
 /* Contacts */
 .list-group {
+  margin-right: 5%;
+  margin-left: 5%;
+}
+
+.contacts{
   margin-right: 5%;
   margin-left: 5%;
 }
@@ -99,7 +104,7 @@ body {
 /* Submint message input */
 .mb-3 {
   position: fixed;
-  bottom: 27px;
+  bottom: 28px;
   background-color: #ffffff;
   width: inherit;
   display: flex;
