@@ -6,6 +6,4 @@ flask-praetorian
 flask_cors
 python-dotenv
 web3
-solc
-py-solc
 psycopg2

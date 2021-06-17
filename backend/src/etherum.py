@@ -1,8 +1,13 @@
-import json, subprocess, os, sys, psql, constants
+""" Blockchin interaction """
+import json
+import subprocess
+import os
+import sys
 from web3 import Web3
-from hexbytes import HexBytes
 from web3.middleware import geth_poa_middleware
-from eth_account import Account
+from hexbytes import HexBytes
+import psql
+import constants
 
 w3 = Web3(Web3.HTTPProvider(constants.PROVIDER))
 
@@ -11,29 +16,30 @@ w3.middleware_onion.inject(geth_poa_middleware, layer=0)
 ####
 
 class HexJsonEncoder(json.JSONEncoder):
+    """ Hex encoder class """
     def default(self, obj):
         if isinstance(obj, HexBytes):
             return obj.hex()
         return super().default(obj)
 
-# compile all contract files
 def compile_contract():
+    """ compile all contract files """
     try:
         #contract location
         working_directory = os.path.split(os.path.split(os.getcwd())[0])[0]+'/eth/'
         #compile contract
-        p = subprocess.Popen(['truffle', 'compile'], cwd=working_directory+'contracts/')
-        p.wait()
+        process = subprocess.Popen(['truffle', 'compile'], cwd=working_directory+'contracts/')
+        process.wait()
 
-        with open(working_directory+'build/contracts/MessageList.json', "r") as f:
-            contract = json.load(f)
+        with open(working_directory+'build/contracts/MessageList.json', "r") as file:
+            contract = json.load(file)
         return contract
     except:
         print(sys.exc_info()[0])
-        return {'error':sys.exc_info()[0]}        
+        return {'error':sys.exc_info()[0]}
 
-# Instantiate and deploy contract
 def deploy_contract(contract_interface, acct):
+    """ Instantiate and deploy contract """
     try:
         contract = w3.eth.contract(
             abi=contract_interface['abi'],
@@ -49,20 +55,19 @@ def deploy_contract(contract_interface, acct):
         signed = acct.signTransaction(construct_txn)
 
         # Get transaction hash from deployed contract
-        tx_hash = w3.eth.send_raw_transaction(signed.rawTransaction)                     
-        
+        tx_hash = w3.eth.send_raw_transaction(signed.rawTransaction)
+
         # Get tx receipt to get contract address
         tx_receipt = w3.eth.wait_for_transaction_receipt(tx_hash)
         return tx_receipt['contractAddress']
     except:
         print(sys.exc_info()[0])
         return {'error': sys.exc_info()[0]}
-    
 
-# Send some eth to client
-def reqest_founds(address,pk):
+def reqest_founds(address,private_key):
+    """ Send some eth to client """
     try:
-        acc = w3.eth.account.privateKeyToAccount(pk)
+        acc = w3.eth.account.privateKeyToAccount(private_key)
         #build transaction
         signed_txn = w3.eth.account.signTransaction(dict(
             nonce=w3.eth.get_transaction_count(acc.address),
@@ -74,25 +79,25 @@ def reqest_founds(address,pk):
         acc.privateKey)
         tx_hash = w3.eth.send_raw_transaction(signed_txn.rawTransaction)
         # Get tx receipt to get contract address
-        tx_receipt = w3.eth.wait_for_transaction_receipt(tx_hash) 
+        tx_receipt = w3.eth.wait_for_transaction_receipt(tx_hash)
         return tx_receipt
     except:
         print(sys.exc_info()[0])
         return {'error': sys.exc_info()[0]}
 
-#build and deploy contract
 def build_and_deploy(acc):
-    if(w3.isConnected()):
+    """ build and deploy contract """
+    if w3.isConnected():
         contract = compile_contract()
         data = {
             'abi': contract['abi'],
             'contract_address': deploy_contract(contract,acc)
-        }        
+        }
         return data
     return False
 
-#return last transaction form blockchain
 def get_last_transaction():
+    """ return last transaction form blockchain """
     try:
         transaction = w3.eth.get_transaction_by_block(w3.eth.blockNumber, 0)
         tx_dict = dict(transaction)
@@ -101,19 +106,19 @@ def get_last_transaction():
     except:
         return {'error':sys.exc_info()[0]}
 
-#initializes contract and blockchain connection
-def init_eth_with_PK(pk):
-    acc = w3.eth.account.privateKeyToAccount(pk)
+def init_eth_with_pk(privatekey):
+    """ initializes contract and blockchain connection """
+    acc = w3.eth.account.privateKeyToAccount(privatekey)
     res = acc.address
     new_contract = False
     w3.eth.default_account = res
-    cur = psql.getContract()
-    if(cur == None):
-        re = build_and_deploy(acc)
-        psql.setContract(re['contract_address'], json.dumps(re['abi']))
-        cur = psql.getContract()
-        new_contract = True   
-    if (cur != None):
+    cur = psql.get_contract()
+    if cur is None:
+        result = build_and_deploy(acc)
+        psql.set_contract(result['contract_address'], json.dumps(result['abi']))
+        cur = psql.get_contract()
+        new_contract = True
+    if cur is not None:
         return {'result': True, 'new_contract':new_contract}
     else:
         return {'result': False, 'new_contract':new_contract}
