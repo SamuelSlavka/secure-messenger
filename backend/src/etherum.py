@@ -1,8 +1,7 @@
-""" Blockchin interaction """
+""" Blockchain interaction """
 import json
 import subprocess
 import os
-import sys
 from web3 import Web3
 from web3.middleware import geth_poa_middleware
 from hexbytes import HexBytes
@@ -11,9 +10,10 @@ import constants
 
 w3 = Web3(Web3.HTTPProvider(constants.PROVIDER))
 
-#### ONLY IN RINKEBY!!
+# ONLY IN RINKEBY!!
 w3.middleware_onion.inject(geth_poa_middleware, layer=0)
-####
+#
+
 
 class HexJsonEncoder(json.JSONEncoder):
     """ Hex encoder class """
@@ -22,21 +22,23 @@ class HexJsonEncoder(json.JSONEncoder):
             return obj.hex()
         return super().default(obj)
 
+
 def compile_contract():
     """ compile all contract files """
     try:
-        #contract location
-        working_directory = os.path.split(os.path.split(os.getcwd())[0])[0]+'/eth/'
-        #compile contract
-        process = subprocess.Popen(['truffle', 'compile'], cwd=working_directory+'contracts/')
+        # contract location
+        working_directory = os.path.split(os.path.split(os.getcwd())[0])[0] + '/eth/'
+        # compile contract
+        process = subprocess.Popen(['truffle', 'compile'], cwd=working_directory + 'contracts/')
         process.wait()
 
-        with open(working_directory+'build/contracts/MessageList.json', "r") as file:
+        with open(working_directory + 'build/contracts/MessageList.json', "r") as file:
             contract = json.load(file)
         return contract
-    except:
-        print(sys.exc_info()[0])
-        return {'error':sys.exc_info()[0]}
+    except Exception as err:
+        print("Error '{0}' occurred.".format(err))
+        return {'error': err}
+
 
 def deploy_contract(contract_interface, acct):
     """ Instantiate and deploy contract """
@@ -45,13 +47,13 @@ def deploy_contract(contract_interface, acct):
             abi=contract_interface['abi'],
             bytecode=contract_interface['bytecode'])
 
-        #build contract creation transaction
+        # build contract creation transaction
         construct_txn = contract.constructor().buildTransaction({
             'from': acct.address,
             'nonce': w3.eth.getTransactionCount(acct.address),
             'gas': 2000000,
             'gasPrice': w3.toWei('30', 'gwei')})
-        #sign the transaction
+        # sign the transaction
         signed = acct.signTransaction(construct_txn)
 
         # Get transaction hash from deployed contract
@@ -60,15 +62,16 @@ def deploy_contract(contract_interface, acct):
         # Get tx receipt to get contract address
         tx_receipt = w3.eth.wait_for_transaction_receipt(tx_hash)
         return tx_receipt['contractAddress']
-    except:
-        print(sys.exc_info()[0])
-        return {'error': sys.exc_info()[0]}
+    except Exception as err:
+        print("Error '{0}' occurred.".format(err))
+        return {'error': err}
 
-def reqest_founds(address,private_key):
+
+def request_founds(address, private_key):
     """ Send some eth to client """
     try:
         acc = w3.eth.account.privateKeyToAccount(private_key)
-        #build transaction
+        # build transaction
         signed_txn = w3.eth.account.signTransaction(dict(
             nonce=w3.eth.get_transaction_count(acc.address),
             gasPrice=w3.eth.gas_price,
@@ -76,14 +79,15 @@ def reqest_founds(address,private_key):
             to=address,
             value=1000000000000000
         ),
-        acc.privateKey)
+            acc.privateKey)
         tx_hash = w3.eth.send_raw_transaction(signed_txn.rawTransaction)
         # Get tx receipt to get contract address
         tx_receipt = w3.eth.wait_for_transaction_receipt(tx_hash)
         return tx_receipt
-    except:
-        print(sys.exc_info()[0])
-        return {'error': sys.exc_info()[0]}
+    except Exception as err:
+        print("Error '{0}' occurred.".format(err))
+        return {'error': err}
+
 
 def build_and_deploy(acc):
     """ build and deploy contract """
@@ -91,10 +95,11 @@ def build_and_deploy(acc):
         contract = compile_contract()
         data = {
             'abi': contract['abi'],
-            'contract_address': deploy_contract(contract,acc)
+            'contract_address': deploy_contract(contract, acc)
         }
         return data
     return False
+
 
 def get_last_transaction():
     """ return last transaction form blockchain """
@@ -103,8 +108,10 @@ def get_last_transaction():
         tx_dict = dict(transaction)
         tx_json = json.dumps(tx_dict, cls=HexJsonEncoder)
         return tx_json
-    except:
-        return {'error':sys.exc_info()[0]}
+    except Exception as err:
+        print("Error '{0}' occurred.".format(err))
+        return {'error': err}
+
 
 def init_eth_with_pk(privatekey):
     """ initializes contract and blockchain connection """
@@ -119,6 +126,6 @@ def init_eth_with_pk(privatekey):
         cur = psql.get_contract()
         new_contract = True
     if cur is not None:
-        return {'result': True, 'new_contract':new_contract}
+        return {'result': True, 'new_contract': new_contract}
     else:
-        return {'result': False, 'new_contract':new_contract}
+        return {'result': False, 'new_contract': new_contract}

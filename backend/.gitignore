@@ -9,6 +9,14 @@ database.db
 constants.py
 /src/constants.py
 
+#pycharm
+/.idea
+.idea/*
+
+/venv
+/venv*
+/venv/*
+
 # dependencies
 /node_modules
 /.pnp
