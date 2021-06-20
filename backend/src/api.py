@@ -17,13 +17,13 @@ guard = flask_praetorian.Praetorian()
 app = flask.Flask(__name__)
 app.debug = True
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-app.config['SECRET_KEY'] = 'top secret'
+app.config['SECRET_KEY'] = constants.SECRET_KEY
 app.config['JWT_ACCESS_LIFESPAN'] = {'hours': 24}
 app.config['JWT_REFRESH_LIFESPAN'] = {'days': 30}
 
 
 # Initializes cors
-cors = CORS(app, resources={"/api/*": {"origins": "*"}})
+cors = CORS(app, resources={"*": {"origins": "*"}})
 app.config['CORS_HEADERS'] = 'Content-Type'
 
 
@@ -80,11 +80,13 @@ def register():
     new_user = User(
             username=username,
             address="",
+            publicKey="",
+            rolenames='client',
             password=guard.hash_password(password)
     )
     if username is None or password is None:
         return {'access_token': ''}, 400
-    if db.session.query(User).filter_by(username=username).first() is not None:
+    if User.lookup(username) is not None:
         return {'access_token': ''}, 400
 
     db.session.add(new_user)
@@ -146,9 +148,13 @@ def contacts():
     """ Returns list of users that address has communicated with """
     req = flask.request.get_json(force=True)
     address = req.get('address', None)
+    number = req.get('number', None)
 
     contact_list = psql.get_contacts(address)
-    ret = {'result': contact_list}
+    if len(contact_list) <= number:
+        ret = {'result': []}
+    else:
+        ret = {'result': contact_list}
     return ret, 200
 
 
@@ -179,10 +185,13 @@ def save_message():
 def get_message():
     """ Get all messages for user from db """
     req = flask.request.get_json(force=True)
+
     receive_address = req.get('recvAddress', None)
     send_address = req.get('sendAddress', None)
+    offset = req.get('offset', None)
+    count = req.get('count', None)
 
-    messages = psql.get_messages(receive_address, send_address)
+    messages = psql.get_messages(receive_address, send_address, offset, count)
     ret = {'result': messages}
     return ret, 200
 
@@ -231,8 +240,8 @@ def public_key():
     address = req.get('address', None)
 
     with app.app_context():
-        ret = db.session.query(User.publicKey).filter(User.address == address).first()
-    if len(ret) > 0:
+        ret = User.lookup_address_pubkey(db, address)
+    if not None:
         result = {"result": ret[0]}
     return result, 200
 
@@ -255,7 +264,7 @@ def get_addr():
 
     username = req.get('username', None)
     with app.app_context():
-        ret = db.session.query(User.address).filter(User.username == username).first()
+        ret = User.lookup_user_address(db, username)
     if ret is not None:
         result = {"result": ret[0]}
     return result, 200
@@ -272,11 +281,14 @@ def is_valid():
     username = req.get('username', None)
     address = req.get('address', None)
     with app.app_context():
-        ret1 = db.session.query(User.address).filter(User.username == username).first()
-        ret2 = db.session.query(User.address).filter(User.address == address).first()
-    if ret1 is not None and ret2 is not None:
-        if len(ret1) > 0 and ret1 == ret2:
-            result = {"result": 1}
+        #print(username)
+        #print(address)
+        unameAddr = User.lookup_user_address(db, username)
+        addrAddr = User.lookup_address(db, address)
+        #print(unameAddr)
+        #print(addrAddr)
+    if unameAddr is not None and addrAddr is not None and unameAddr == addrAddr:        
+        result = {"result": 1}
     return result, 200
 
 

@@ -2,12 +2,10 @@ import React, { useState } from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import Button from 'react-bootstrap/Button'
 import Form from 'react-bootstrap/Form'
-//import Web3 from 'web3'
+
+import { fetchServer } from '../messages/generalFunc';
 
 const EthCrypto = require('eth-crypto');
-
-var serverAddr = 'https://slavka.one';
-
 
 async function loadBlockchainData(password) {
     //const web3 = new Web3('');
@@ -27,33 +25,15 @@ export function Register() {
 
     async function onSubmitClick(e) {
         e.preventDefault();
-        let opts = {
-            'username': username,
-            'password': password
-        };
-
-        const response = await fetch(serverAddr + '/api/register', {
-            method: 'post',
-            body: JSON.stringify(opts)
-        });
-
-        const token = await response.json();
+        const token = await fetchServer('/api/register', {username: username, password: password });
 
         if (token.access_token) {
             sessionStorage.setItem('token', token.access_token);
 
             const acc = await loadBlockchainData(username);
-            opts = {
-                'address': acc.address,
-                'public': acc.publicKey
-            };
-            
+
             //fetch save account address in server
-            await fetch(serverAddr + '/api/saveAddress', {
-                method: 'post',
-                body: JSON.stringify(opts),
-                headers: { Authorization: 'Bearer ' + token.access_token }
-            })
+            await fetchServer('/api/saveAddress', { address: acc.address, public: acc.publicKey });
 
             // stores encripterd private key in local storage   
             localStorage.setItem('privateKey', (CryptoJS.AES.encrypt(acc.privateKey, password )));

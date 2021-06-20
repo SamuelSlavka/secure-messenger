@@ -1,6 +1,5 @@
 import React, { useState, useLayoutEffect } from 'react';
-
-var serverAddr = 'https://slavka.one';
+import { serverAddr } from './constants';
 
 export function Home() {
   const [transaction, setTransaction] = useState('');

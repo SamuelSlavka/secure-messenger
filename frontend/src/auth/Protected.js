@@ -1,8 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { UserList } from '../messages/UserList';
-import { getContractInfo } from '../messages/web3Func';
-
-var serverAddr = 'https://slavka.one';
+import { getContractInfo, fetchServer } from '../messages/generalFunc';
 
 export function Protected() {
 
@@ -11,14 +9,8 @@ export function Protected() {
 
   useEffect(() => {
     async function fetchAuth() {
-
-      const token = sessionStorage.getItem('token');
       //fetches useful protected information
-      const response = await fetch(serverAddr + '/api/protected', {
-        method: 'get',
-        headers: { Authorization: 'Bearer ' + token }
-      })
-      const json = await response.json();
+      const json = await fetchServer('/api/protected', { }, 'get');      
 
       if (json.status_code === 401 || json.status_code === 403) {
         setMessage({result: false });

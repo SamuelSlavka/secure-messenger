@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
-
-var serverAddr = 'https://slavka.one';
+import { fetchServer } from '../messages/generalFunc';
 
 export function Logout() {
   const [message, setMessage] = useState('');
@@ -13,12 +12,8 @@ export function Logout() {
       if (token !== null) {
         try {
           //sends directive to blacklist JWT
-          const response = await fetch(serverAddr + '/api/logout', {
-            method: 'post',
-            headers: { 'Authorization': 'Bearer ' + token },
-            body: { 'token': token }
-          })
-          const json = await response.json();
+          const json = await fetchServer('/api/logout', { token: token });
+
           setMessage("Logged out: "+json.result);
         }
         catch (e) {

@@ -12,7 +12,6 @@ import { Logout } from './auth/Logout';
 import { Register } from './auth/Register';
 
 
-
 export default class App extends Component {
 
   //dynamic part of website

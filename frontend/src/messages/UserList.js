@@ -8,7 +8,8 @@ import Button from 'react-bootstrap/Button'
 import Form from 'react-bootstrap/Form'
 import Tooltip from 'react-bootstrap/Tooltip'
 import OverlayTrigger from 'react-bootstrap/OverlayTrigger'
-import { getBalance, getPK, getContacts, askForMoney, getAddressFromName, isUserRegistred } from './web3Func';
+import { getPK, getContacts, askForMoney, getAddressFromName, isUserRegistred } from './generalFunc';
+import { getBalance } from './web3Func';
 import { MessageList } from '../messages/MessageList';
 
 
@@ -66,8 +67,9 @@ export function UserList(args) {
   const handleSaveCloseCreate = async (username, address) => {
     try {
       let addr = address;
-      if (address === '')
-        addr = await getAddressFromName(username)
+      if (address === ''){
+        addr = await getAddressFromName(username);
+      }
 
       if (await isUserRegistred(username, addr)) {
         const data = { "username": username, "address": addr }
@@ -92,7 +94,7 @@ export function UserList(args) {
         if (args.props.address !== null && args.props.address !== '') {
           let [nb, contacts] = await Promise.all([
             getBalance(args.props.address),
-            getContacts(args.props.address)
+            getContacts(args.props.address, contactList.contacts.length )
           ]);
 
           setBalance(nb);
@@ -112,7 +114,7 @@ export function UserList(args) {
     }
 
     fetchAuth();
-    //sets timer for next fetch
+    //sets timer for next fetch 
     if (!contact.result) {
       timerID = setInterval(() => {
         if (!contact.result) {

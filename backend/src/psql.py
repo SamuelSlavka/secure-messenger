@@ -49,7 +49,7 @@ def create_tables():
         # commit the changes
         conn.commit()
 
-    except (Exception, psycopg2.DatabaseError) as error:
+    except Exception as error:
         print(error)
     finally:
         if conn is not None:
@@ -62,8 +62,9 @@ def get_contacts(address):
     cur = conn.cursor()
 
     cur.execute(
-        "SELECT DISTINCT recvAddress,recvName FROM message WHERE (sendAddress=%s) UNION SELECT DISTINCT sendAddress,"
-        "sendName FROM message WHERE (recvAddress=%s);",
+        "SELECT DISTINCT recvAddress,recvName FROM message WHERE (sendAddress=%s) "
+        "UNION "
+        "SELECT DISTINCT sendAddress, sendName FROM message WHERE (recvAddress=%s);",
         (address, address,))
     res = []
     for row in cur:
@@ -100,13 +101,16 @@ def set_contract(address, abi):
     conn.close()
 
 
-def get_messages(receive_address, send_address):
-    """ return all messages between two addresses """
+def get_messages(receive_address, send_address, offset, count):
+    """ return most recent messages from offset to count from both communicators """
     conn = connect_db()
     cur = conn.cursor()
     cur.execute(
-        "SELECT * FROM message WHERE (recvAddress=%s AND sendAddress=%s) OR (recvAddress=%s AND sendAddress=%s);",
-        (receive_address, send_address, send_address, receive_address,))
+        "(SELECT * FROM message WHERE (recvAddress=%s AND sendAddress=%s) ORDER by id DESC LIMIT %s OFFSET %s) "
+        "UNION "
+        "(SELECT * FROM message WHERE (recvAddress=%s AND sendAddress=%s) ORDER by id DESC LIMIT %s OFFSET %s) "
+        "ORDER by id;",
+        (receive_address, send_address, count, offset, send_address, receive_address, count, offset))
     res = []
     for row in cur:
         res.append(row)

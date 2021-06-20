@@ -16,50 +16,66 @@ contract MessageList {
 
     event MessageCreated(
         uint count,
-        address sender,
-        address reciever
+        uint timestamp
     );
 
     mapping(address => Client) private clients;
 
-    function createMessage(string memory _content, address reciever) public returns (uint) {
+    function createMessage(string memory _content, address reciever) public{
         Client storage recv = clients[reciever];
 
         if (!recv.initialized) {
             recv.initialized = true;
             recv.messageCount = 0;
         }
-
+        uint timestamp = block.timestamp;
         recv.messages[recv.messageCount] = Message({
             content: _content,
             senderAddr: msg.sender,
-            time: block.timestamp
+            time: timestamp
         });
         recv.messageCount++;
 
-        emit MessageCreated(recv.messageCount, msg.sender, reciever);
-        return block.timestamp;
+        emit MessageCreated(recv.messageCount, timestamp);
     }
 
-    function getMessages(address reciever, address sender) public view returns (Message[] memory) {        
+    function geClientCount(address client) public view returns (uint) {        
+        Client storage cli = clients[client];                
+        return cli.messageCount;
+    }
+
+    function getLastMessages(address reciever, address sender, uint offset, uint count) public view returns (Message[] memory) 
+    {        
         Client storage recv = clients[reciever];  
         Client storage sndr = clients[sender];
 
-        Message[] memory res = new Message[](recv.messageCount+sndr.messageCount);
-        
+        Message[] memory res = new Message[](2*count);
+                
         uint j = 0;
-        for (uint i = 0; i<=recv.messageCount; i++ ) {
-            if(sender == recv.messages[i].senderAddr){
-                res[j] = recv.messages[i];
-                j++;
+        
+        offset++;
+        if((offset-1) < recv.messageCount){
+            for (uint i = recv.messageCount; i > 0; i--) 
+            {
+                if(j>=count) break;
+                if(sender == recv.messages[i-offset].senderAddr){
+                    res[j] = recv.messages[i-offset];
+                    j++;
+                }
             }
         }
-        for (uint i = 0; i<=sndr.messageCount; i++ ) {
-            if(reciever == sndr.messages[i].senderAddr){
-                res[j] = sndr.messages[i];
-                j++;
+    
+        if((offset-1) < sndr.messageCount){
+            for (uint i = sndr.messageCount; i > 0; i--) 
+            {   
+                if(j>=(2*count)) break;
+                if(reciever == sndr.messages[i-offset].senderAddr){
+                    res[j] = sndr.messages[i-offset];
+                    j++;
+                }
             }
-        }        
+        }
+
         return res;
     }
 }

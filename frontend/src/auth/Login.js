@@ -3,7 +3,7 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import Button from 'react-bootstrap/Button'
 import Form from 'react-bootstrap/Form'
 
-var serverAddr = 'https://slavka.one';
+import { fetchServer } from '../messages/generalFunc';
 
 export function Login() {
     const [username, setUsername] = useState('');
@@ -13,17 +13,7 @@ export function Login() {
     async function onSubmitClick(e) {
         e.preventDefault();
 
-        let opts = {
-            'username': username,
-            'password': password
-        };
-
-        const response = await fetch(serverAddr+'/api/login', {
-            method: 'post',
-            body: JSON.stringify(opts)
-        });
-
-        const token = await response.json();
+        const token = await fetchServer('/api/login', { username: username, password: password });
 
         if (token.access_token) {
             sessionStorage.setItem('token', token.access_token);
