@@ -1,15 +1,15 @@
 """ DB interaction """
 import psycopg2
-import constants
+from .constants import *
 
 
 def connect_db():
     """ Connect to db """
     return psycopg2.connect(
-        host=constants.HOST,
-        database=constants.DATABASE,
-        user=constants.USER,
-        password=constants.PASSWORD
+        host=HOST,
+        database=DATABASE,
+        user=USER,
+        password=PASSWORD
     )
 
 

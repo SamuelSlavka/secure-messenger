@@ -5,7 +5,7 @@ flask_sqlalchemy
 flask-praetorian
 flask_cors
 python-dotenv~=0.17.1
-web3
+web3>=5.18.0
 psycopg2
 hexbytes~=0.2.1
 idna~=2.10
@@ -16,7 +16,6 @@ attrs~=21.2.0
 Deprecated~=1.2.12
 inflection~=0.3.1
 requests~=2.25.1
-websockets>=9.1
 base58~=2.1.0
 ipfshttpclient~=0.7.0
 jsonschema~=3.2.0
@@ -46,3 +45,5 @@ pyrsistent~=0.17.3
 setuptools~=57.0.0
 SQLAlchemy~=1.4.18
 PyJWT~=2.1.0
+uWSGI==2.0.17.1
+gunicorn

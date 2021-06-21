@@ -5,10 +5,10 @@ import os
 from web3 import Web3
 from web3.middleware import geth_poa_middleware
 from hexbytes import HexBytes
-import psql
-import constants
+from .psql import *
+from .constants import *
 
-w3 = Web3(Web3.HTTPProvider(constants.PROVIDER))
+w3 = Web3(Web3.HTTPProvider(PROVIDER))
 
 # ONLY IN RINKEBY!!
 w3.middleware_onion.inject(geth_poa_middleware, layer=0)
@@ -110,7 +110,7 @@ def get_last_transaction():
         return tx_json
     except Exception as err:
         print("Error '{0}' occurred.".format(err))
-        return {'error': err}
+        return {'error':'Error while fetching transaction'}
 
 
 def init_eth_with_pk(privatekey):
@@ -119,11 +119,11 @@ def init_eth_with_pk(privatekey):
     res = acc.address
     new_contract = False
     w3.eth.default_account = res
-    cur = psql.get_contract()
+    cur = get_contract()
     if cur is None:
         result = build_and_deploy(acc)
-        psql.set_contract(result['contract_address'], json.dumps(result['abi']))
-        cur = psql.get_contract()
+        set_contract(result['contract_address'], json.dumps(result['abi']))
+        cur = get_contract()
         new_contract = True
     if cur is not None:
         return {'result': True, 'new_contract': new_contract}

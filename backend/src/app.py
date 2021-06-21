@@ -5,10 +5,10 @@ import flask
 import flask_praetorian
 from flask_cors import CORS
 from flask_cors import cross_origin
-from model import User
-import psql
-import etherum
-import constants
+from .model import User
+from .psql import *
+from .ethereum import *
+from .constants import *
 
 db = User.database
 guard = flask_praetorian.Praetorian()
@@ -17,7 +17,7 @@ guard = flask_praetorian.Praetorian()
 app = flask.Flask(__name__)
 app.debug = True
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-app.config['SECRET_KEY'] = constants.SECRET_KEY
+app.config['SECRET_KEY'] = SECRET_KEY
 app.config['JWT_ACCESS_LIFESPAN'] = {'hours': 24}
 app.config['JWT_REFRESH_LIFESPAN'] = {'days': 30}
 
@@ -37,7 +37,7 @@ def is_blacklisted(jti):
 
 
 # create psql message and contract database
-psql.create_tables()
+create_tables()
 
 # Initialize a local user database
 app.config['SQLALCHEMY_DATABASE_URI'] = f"sqlite:///{os.path.join(os.getcwd(), 'database.db')}"
@@ -47,7 +47,7 @@ with app.app_context():
     db.create_all()
 
 # create and deploy smart contract
-res = etherum.init_eth_with_pk(constants.PK)
+res = init_eth_with_pk(PK)
 
 if not res['result']:
     sys.exit("Error connecting to ETH")
@@ -56,7 +56,7 @@ if res['new_contract']:
     with app.app_context():
         db.drop_all()
         db.create_all()
-        psql.drop_users()
+        drop_users()
 
 # Initialize the flask-praetorian instance for the app
 guard.init_app(app, User, is_blacklisted=is_blacklisted)
@@ -66,7 +66,7 @@ guard.init_app(app, User, is_blacklisted=is_blacklisted)
 @cross_origin()
 def home():
     """ Returns last transaction on current blockchain """
-    ret = etherum.get_last_transaction()
+    ret = get_last_transaction()
     return ret, 200
 
 
@@ -116,7 +116,7 @@ def login():
 @flask_praetorian.auth_required
 def info():
     """  Returns contract info """
-    contract = psql.get_contract()
+    contract = get_contract()
     ret = {'address': contract[1],
            'abi': contract[2],
            'userAddr': flask_praetorian.current_user().address,
@@ -124,7 +124,7 @@ def info():
     return ret, 200
 
 
-@app.route('/api/saveAddress', methods=['POST'])
+@app.route('/api/saveaddress', methods=['POST'])
 @cross_origin()
 @flask_praetorian.auth_required
 def save_addr():
@@ -150,7 +150,7 @@ def contacts():
     address = req.get('address', None)
     number = req.get('number', None)
 
-    contact_list = psql.get_contacts(address)
+    contact_list = get_contacts(address)
     if len(contact_list) <= number:
         ret = {'result': []}
     else:
@@ -172,7 +172,7 @@ def save_message():
     recv_contents = req.get('recvContents', None)
     send_contents = req.get('sendContents', None)
 
-    psql.set_message(recv_address, send_address, recv_name, send_name,
+    set_message(recv_address, send_address, recv_name, send_name,
                      timestamp, recv_contents, send_contents)
 
     ret = {'result': 'success'}
@@ -191,7 +191,7 @@ def get_message():
     offset = req.get('offset', None)
     count = req.get('count', None)
 
-    messages = psql.get_messages(receive_address, send_address, offset, count)
+    messages = get_messages(receive_address, send_address, offset, count)
     ret = {'result': messages}
     return ret, 200
 
@@ -224,7 +224,7 @@ def poor():
     req = flask.request.get_json(force=True)
     ret = {"result": 0}
     address = req.get('address', None)
-    receipt = etherum.request_founds(address, constants.PK)
+    receipt = request_founds(address, PK)
     if "error" not in receipt:
         ret = {"result": 1}
     return ret, 200
@@ -250,11 +250,11 @@ def public_key():
 @cross_origin()
 def get_provider():
     """ Returns provider URL """
-    provider = {"result": constants.PROVIDER}
+    provider = {"result": PROVIDER}
     return provider, 200
 
 
-@app.route('/api/getUserAddress', methods=['POST'])
+@app.route('/api/getuseraddress', methods=['POST'])
 @cross_origin()
 @flask_praetorian.auth_required
 def get_addr():
@@ -270,7 +270,7 @@ def get_addr():
     return result, 200
 
 
-@app.route('/api/isValid', methods=['POST'])
+@app.route('/api/isvalid', methods=['POST'])
 @cross_origin()
 @flask_praetorian.auth_required
 def is_valid():
@@ -281,16 +281,11 @@ def is_valid():
     username = req.get('username', None)
     address = req.get('address', None)
     with app.app_context():
-        #print(username)
-        #print(address)
         unameAddr = User.lookup_user_address(db, username)
         addrAddr = User.lookup_address(db, address)
-        #print(unameAddr)
-        #print(addrAddr)
     if unameAddr is not None and addrAddr is not None and unameAddr == addrAddr:        
         result = {"result": 1}
     return result, 200
-
 
 # Run the server
 if __name__ == '__main__':

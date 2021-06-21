@@ -79,7 +79,7 @@ export async function getAddressFromName(username) {
     var res = "";
 
     try {
-        const ret = await fetchServer('/api/getUserAddress', { username: username })
+        const ret = await fetchServer('/api/getuseraddress', { username: username })
         res = ret.result;
     }
     catch (exception_var) {
@@ -96,7 +96,7 @@ export async function isUserRegistred(username, address) {
     var res = false;
 
     try {
-        const ret = await fetchServer('/api/isValid', { username: username, address: address })
+        const ret = await fetchServer('/api/isvalid', { username: username, address: address })
 
         if (ret.result === 1)
             res = true;

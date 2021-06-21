@@ -5,16 +5,18 @@
   "dependencies": {
     "@testing-library/jest-dom": "^5.11.9",
     "@testing-library/react": "^11.2.5",
-    "@testing-library/user-event": "^12.8.3",  
+    "@testing-library/user-event": "^12.8.3",
     "bootstrap": "^4.6.0",
     "crypto-js": "^4.0.0",
-    "eth-crypto": "^1.9.0",
+    "immer": "^9.0.3",
     "local-storage": "^2.0.0",
     "react": "^17.0.1",
     "react-bootstrap": "^1.5.2",
     "react-dom": "^17.0.1",
     "react-router-dom": "^5.2.0",
-    "react-scripts": "^4.0.3",
+    "web-vitals": "^1.1.0",
+    "web3": "^1.3.6",
+    "web3-net": "^1.3.6",
     "workbox-background-sync": "^5.1.4",
     "workbox-broadcast-update": "^5.1.4",
     "workbox-cacheable-response": "^5.1.4",
@@ -27,9 +29,7 @@
     "workbox-routing": "^5.1.4",
     "workbox-strategies": "^5.1.4",
     "workbox-streams": "^5.1.4",
-    "web-vitals": "^1.1.0",
-    "web3": "^1.3.6",
-    "web3-net": "^1.3.6"
+    "ws": "^7.5.0"
   },
   "scripts": {
     "start": "react-scripts start",
@@ -54,5 +54,18 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
+  },
+  "devDependencies": {
+    "@ethersproject/providers": "^5.0.24",
+    "browserslist": "^4.16.6",
+    "css-select": "^4.1.3",
+    "css-what": "^5.0.1",
+    "eth-crypto": "^1.9.0",
+    "ethers": "^5.0.32",
+    "glob-parent": "^5.1.2",
+    "normalize-url": "^6.0.1",
+    "react-refresh-webpack-plugin": "^0.1.0",
+    "react-scripts": "^4.0.3",
+    "type-fest": "^0.21.3"
   }
 }

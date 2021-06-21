@@ -33,7 +33,7 @@ export function Register() {
             const acc = await loadBlockchainData(username);
 
             //fetch save account address in server
-            await fetchServer('/api/saveAddress', { address: acc.address, public: acc.publicKey });
+            await fetchServer('/api/saveaddress', { address: acc.address, public: acc.publicKey });
 
             // stores encripterd private key in local storage   
             localStorage.setItem('privateKey', (CryptoJS.AES.encrypt(acc.privateKey, password )));
