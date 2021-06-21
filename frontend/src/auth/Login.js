@@ -39,6 +39,10 @@ export function Login() {
     <div className="input-form">
     <Form className="input-border">
         <Form.Group controlId="formBasicName" className="input-field" >
+            <h3>Login</h3>        
+        </Form.Group>
+
+        <Form.Group controlId="formBasicName" className="input-field" >
         <Form.Label>Username:</Form.Label>
         <Form.Control type="text" value={username}  onChange={handleUsernameChange} placeholder="Enter username" />
         </Form.Group>

@@ -61,6 +61,10 @@ export function Register() {
         <div className="input-form">
             <Form className="input-border">
                 <Form.Group controlId="formBasicName" className="input-field" >
+                    <h3>Register</h3>        
+                </Form.Group>
+
+                <Form.Group controlId="formBasicName" className="input-field" >
                     <Form.Label>Username:</Form.Label>
                     <Form.Control type="text" value={username} onChange={handleUsernameChange} placeholder="Enter username" autoComplete="new-password" />
                 </Form.Group>
