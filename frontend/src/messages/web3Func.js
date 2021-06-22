@@ -9,6 +9,7 @@ const web3 = new Web3();
 
 web3.setProvider(new web3.providers.WebsocketProvider(provider));
 
+// encrypt message with public kry
 async function encryptMessage(message, recvPublic, PK) {
   const signature = EthCrypto.sign(
     PK,
@@ -30,6 +31,7 @@ async function encryptMessage(message, recvPublic, PK) {
   return EthCrypto.cipher.stringify(encrypted);
 }
 
+// decrypt message and save result to sixth position of input
 async function decryptMessage(message, myAddress, PK) {
   const mesg = message;
   if (myAddress === message[2]) {
@@ -37,9 +39,7 @@ async function decryptMessage(message, myAddress, PK) {
   }
 
   const encryptedObject = EthCrypto.cipher.parse(message[6]);
-
   const decrypted = await EthCrypto.decryptWithPrivateKey(PK, encryptedObject);
-
   const decryptedPayload = JSON.parse(decrypted);
 
   // TODO check signature
@@ -114,7 +114,7 @@ export async function sendMessageToAddr(info, message, sendAddress,
 // get encrypted messages from db and checksums from blockchain
 // decrypt and check mesaages then return
 export async function getMessagesFromAddr(info, recvAddress, sendAddress) {
-  const result = [];
+  let result = [];
   try {
     const PK = getPK();
 
@@ -133,20 +133,25 @@ export async function getMessagesFromAddr(info, recvAddress, sendAddress) {
       }),
     ]);
 
-    const contractChecks = Array.from(contractRes, (x) => x[0]).filter((x) => x !== '');
-
+    // get checksums from contract output
+    const contractChecks = Array.from(contractRes, (x) => x[0]).filter((y) => y !== '');
     const db = dbRes.result;
 
-    for (let i = 0; i < db.length; i += 1) {
-      const decr = decryptMessage(db[i], account, PK);
-      // get checksum from decrypted message
-      const decrChsum = crypto.createHash('md5').update(decr[6]).digest('hex');
+    // decrypt messages
+    const decriptedPromises = db.map((x) => decryptMessage(x, account, PK));
+    const decripted = await Promise.all(decriptedPromises);
 
-      // wait for blckchain propagation
-      if (Date.now() - db[5] < 5000) result.push(decr);
-      // compare with smart contract output
-      else if (contractChecks.includes(decrChsum)) result.push(decr);
-    }
+    // generate hashes and connect them to messages
+    const hashPromises = decripted.map((x) => [crypto.createHash('md5').update(x[6]).digest('hex'), x]);
+    const hashes = await Promise.all(hashPromises);
+
+    const currentTime = Date.now();
+    // return message values with correct checksums or younger than 10 seconds for blochain latency
+    const resultPromisses = hashes.filter(
+      (x) => contractChecks.includes(x[0]) || currentTime - x[1][5] < 10000,
+    ).map((y) => y[1]);
+    // collect all results
+    result = await Promise.all(resultPromisses);
   } catch (error) {
     return error;
   }

@@ -11,7 +11,11 @@ const Home = () => {
   }
 
   useLayoutEffect(() => {
-    fetchMyAPI();
+    try {
+      fetchMyAPI();
+    } catch {
+      setTransaction('Network connection error.');
+    }
   }, []);
 
   return (
