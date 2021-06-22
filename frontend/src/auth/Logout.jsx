@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { fetchServer } from '../messages/generalFunc';
 
-export function Logout() {
+export default function Logout() {
   const [message, setMessage] = useState('');
 
   useEffect(() => {
@@ -11,18 +11,14 @@ export function Logout() {
 
       if (token !== null) {
         try {
-          //sends directive to blacklist JWT
-          const json = await fetchServer('/api/logout', { token: token });
+          // sends directive to blacklist JWT
+          const json = await fetchServer('/api/logout', { token });
 
-          setMessage("Logged out: "+json.result);
+          setMessage(`Logged out: ${json.result}`);
+        } catch (e) {
+          setMessage(`Failed to logout: ${e}`);
         }
-        catch (e) {
-          console.log(e)
-          setMessage("Failed to logout: " + e);
-        }
-      }
-      else
-        setMessage("You are not logged in");
+      } else setMessage('You are not logged in');
     }
     fetchAuth();
     sessionStorage.clear();
