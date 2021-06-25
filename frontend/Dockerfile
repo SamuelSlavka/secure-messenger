@@ -15,7 +15,6 @@ RUN apk add --no-cache --virtual .gyp \
 COPY . .
 
 #Build frontend
-EXPOSE 3000
 RUN npm run build
 
 # # stage 2

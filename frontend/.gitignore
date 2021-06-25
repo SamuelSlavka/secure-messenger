@@ -5,6 +5,12 @@
 /.pnp
 .pnp.js
 
+/package-lock.json
+package-lock.json
+/.eslintric.json
+.eslintric.json
+/src/constants.js
+
 # testing
 /coverage
 

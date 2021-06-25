@@ -23,10 +23,7 @@ Messages are received by polling server DB and smart contract contents. When the
   python <br>
 
 #### Setup:
-  in file **docker-compose.yml** replace **--staging** with **--force-renew** <br>
-    
-    ./ssl_renew.sh
-
+  Instructions are described in wiki.
   
 #### Starting server:
     docker-compose up
