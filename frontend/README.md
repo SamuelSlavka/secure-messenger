@@ -1,13 +1,24 @@
-# Frontend React App
+# frontend
 
-#### Setup:
+## Project setup
+```
+npm install
+```
 
-    npm i
+### Compiles and hot-reloads for development
+```
+npm run serve
+```
 
-#### Usage:
+### Compiles and minifies for production
+```
+npm run build
+```
 
-    npm start
+### Lints and fixes files
+```
+npm run lint
+```
 
-#### Execution:
-
-    http://localhost:3000
+### Customize configuration
+See [Configuration Reference](https://cli.vuejs.org/config/).

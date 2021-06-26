@@ -2,12 +2,14 @@
 REST API backend communicating with psql and sqlalchemy.
 
 #### Setup:
-    source auth/bin/activate
+    python3 -m venv env
+    source env/bin/activate 
+    python3 -m pip install -r requirements.txt
     python api.py
 
   
 #### Starting server:
-    flask run
+    python app.py
   
  #### Execution:
-   http://localhost:5000/<query>
+    http://localhost:5000/<query>
