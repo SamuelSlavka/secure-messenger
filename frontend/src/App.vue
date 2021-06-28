@@ -12,9 +12,11 @@
           <router-link v-if="loggedIn" to="/protected" class="nav-link">Messages</router-link>
         </div>
         <div>
-          <router-link v-if="!loggedIn" to="/login" class="nav-link">Login</router-link>
-          <router-link v-if="!loggedIn" to="/register" class="nav-link">Register</router-link>
-          <router-link v-if="loggedIn" to="/logout" class="nav-link">Logout</router-link>
+          <template v-if="!loggedIn">
+            <router-link  to="/login" class="nav-link">Login</router-link>
+            <router-link to="/register" class="nav-link">Register</router-link>
+          </template>
+          <router-link v-else to="/logout" class="nav-link">Logout</router-link>
         </div>
       </div>
     </nav>
@@ -44,17 +46,19 @@ export default {
 
 <style lang="scss">
 #app {
-  background: #f2f2f2;
+
+background-color: #f2f2f2;
   width: 100%;
   height: 100%;
   margin: 0;
+  overflow: auto;
 }
 .navbar {
   display: flex;
   align-items: center;
   justify-content: space-between;
   flex-wrap: wrap;
-  background-color: #2D3047;
+  background-color: #2A3659;
 
   .home {
     display: flex;
@@ -62,15 +66,14 @@ export default {
     flex-shrink: 0;
     padding-left: 10px;
     padding-right: 10px;
-    color: white;
+    color: #EBEFF2;
     font-size: 30px;
   }
-
   .toggle-div {
     display: block;
     padding: 10px;
     .toggle {
-      background-color: #93B7BE;
+      background-color: #0477BF;
       display: flex;
       align-items: center;
       border-radius: 5px;
@@ -84,8 +87,12 @@ export default {
     padding: 5px;
     font-size: 22px;
   }
+  .nav-link:hover {
+    background-color: #6064A6;
+  }
   .nav-list {
     padding-left: 16px;
+    padding-right: 16px;
     width: 100%;
     flex-grow: 1;
   }

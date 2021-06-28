@@ -3,10 +3,11 @@ html, body {
   height: 100%;
   margin: 0;
   font-size: 14px;
+  overflow: auto;
 }
 
 * {
   text-decoration: none;
   font-family: Helvetica, sans-serif;
-  line-height: 1.8;
+  line-height: 1.6;
 }
