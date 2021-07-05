@@ -1,13 +1,20 @@
 import Web3 from 'web3';
-import { provider } from '../constants';
-import { getPK, getPublicKey, fetchServer } from './generalFunc';
+import getPK from './generalFunc';
+import { getPublicKey } from '../api/getUserInfo';
+import { getMessages, setMessage } from '../api/serverInteractions';
 
+const provider = process.env.VUE_APP_ETH_PROVIDER;
 const EthCrypto = require('eth-crypto');
 const crypto = require('crypto');
 
 const web3 = new Web3();
 
 web3.setProvider(new web3.providers.WebsocketProvider(provider));
+
+// return address balance
+export const getBalance = (address) => web3.eth.getBalance(address);
+// create blockchain account
+export const createAccount = () => EthCrypto.createIdentity();
 
 // encrypt message with public kry
 async function encryptMessage(message, recvPublic, PK) {
@@ -56,58 +63,57 @@ async function decryptMessage(message, myAddress, PK) {
 // create checksum of the message and send to blockchain
 export async function sendMessageToAddr(info, message, sendAddress,
   recvAddress, sendName, recvName) {
-  try {
-    const PK = getPK();
+  const PK = getPK();
 
-    // == ETH ==
-    // checksum for blckchain storage
-    const checksum = crypto.createHash('md5').update(message).digest('hex');
+  // == ETH ==
+  // checksum for blckchain storage
+  const checksum = crypto.createHash('md5').update(message).digest('hex');
 
-    // Add account from private key
-    web3.eth.accounts.wallet.add(PK);
-    const from = web3.eth.accounts.wallet[0].address;
+  // Add account from private key
+  web3.eth.accounts.wallet.add(PK);
+  const from = web3.eth.accounts.wallet[0].address;
 
-    // contract instance
-    const contract = new web3.eth.Contract(JSON.parse(info.abi), info.address);
-    const transaction = contract.methods.createMessage(checksum, recvAddress);
+  // contract instance
+  const contract = new web3.eth.Contract(JSON.parse(info.abi), info.address);
+  const transaction = contract.methods.createMessage(checksum, recvAddress);
 
-    // estimate cost
-    let estimate = await transaction.estimateGas({ from });
-    estimate = Math.round(estimate * 1.5);
+  // estimate cost
+  let estimate = await transaction.estimateGas({ from });
+  estimate = Math.round(estimate * 1.5);
 
-    // send transaction
-    transaction.send({
-      from,
-      to: info.address,
-      gas: estimate,
-    });
+  // send transaction
+  transaction.send({
+    from,
+    to: info.address,
+    gas: estimate,
+  });
 
-    // == DB ==
-    // gets public keys for encrypting
-    const [recvPublic, sendPublic] = await Promise.all([
-      getPublicKey(recvName, recvAddress),
-      getPublicKey(sendName, sendAddress),
-    ]);
+  // == DB ==
+  // gets public keys for encrypting
+  const [recvPublic, sendPublic] = await Promise.all([
+    getPublicKey(recvName, recvAddress),
+    getPublicKey(sendName, sendAddress),
+  ]);
 
-    // creates two encryptions so that both sides can read later on
-    const [recvEncrypted, sendEncrypted] = await Promise.all([
-      encryptMessage(message, recvPublic, PK),
-      encryptMessage(message, sendPublic, PK),
-    ]);
+  // creates two encryptions so that both sides can read later on
+  const [recvEncrypted, sendEncrypted] = await Promise.all([
+    encryptMessage(message, recvPublic, PK),
+    encryptMessage(message, sendPublic, PK),
+  ]);
 
-    // save transaction to psql db
-    fetchServer('/api/savemessage', {
-      recvAddress,
-      sendAddress,
-      recvName,
-      sendName,
-      timestamp: Date.now(),
-      recvContents: recvEncrypted,
-      sendContents: sendEncrypted,
-    });
-  } catch (error) {
-    return { Error: true, body: error };
-  }
+  const timestamp = Date.now();
+  const recvContents = recvEncrypted;
+  const sendContents = sendEncrypted;
+  // save transaction to psql db
+  setMessage(
+    recvAddress,
+    sendAddress,
+    recvName,
+    sendName,
+    timestamp,
+    recvContents,
+    sendContents,
+  );
   return { Error: false, body: 'Transaction Failed' };
 }
 
@@ -115,68 +121,41 @@ export async function sendMessageToAddr(info, message, sendAddress,
 // decrypt and check mesaages then return
 export async function getMessagesFromAddr(info, recvAddress, sendAddress) {
   let result = [];
-  try {
-    const PK = getPK();
+  const PK = getPK();
 
-    // create contract instance
-    const contract = new web3.eth.Contract(JSON.parse(info.abi), info.address);
-    // unlock wallet
-    web3.eth.accounts.wallet.add(PK);
-    const account = web3.eth.accounts.wallet[0].address;
+  // create contract instance
+  const contract = new web3.eth.Contract(JSON.parse(info.abi), info.address);
+  // unlock wallet
+  web3.eth.accounts.wallet.add(PK);
+  const account = web3.eth.accounts.wallet[0].address;
+  const offset = 0;
+  const count = 10;
 
-    const [contractRes, dbRes] = await Promise.all([
-      // call get method with wallet
-      contract.methods.getLastMessages(recvAddress, sendAddress, 0, 10).call({ from: account }),
-      // fetch same mesasges form db
-      fetchServer('/api/getmessages', {
-        recvAddress, sendAddress, offset: 0, count: 10,
-      }),
-    ]);
+  const [contractRes, dbRes] = await Promise.all([
+    // call get method with wallet
+    contract.methods.getLastMessages(recvAddress, sendAddress, 0, 10).call({ from: account }),
+    // fetch same mesasges form db
+    getMessages(recvAddress, sendAddress, offset, count),
+  ]);
 
-    // get checksums from contract output
-    const contractChecks = Array.from(contractRes, (x) => x[0]).filter((y) => y !== '');
-    const db = dbRes.result;
+  // get checksums from contract output
+  const contractChecks = Array.from(contractRes, (x) => x[0]).filter((y) => y !== '');
+  const db = dbRes.result;
 
-    // decrypt messages
-    const decriptedPromises = db.map((x) => decryptMessage(x, account, PK));
-    const decripted = await Promise.all(decriptedPromises);
+  // decrypt messages
+  const decriptedPromises = db.map((x) => decryptMessage(x, account, PK));
+  const decripted = await Promise.all(decriptedPromises);
 
-    // generate hashes and connect them to messages
-    const hashPromises = decripted.map((x) => [crypto.createHash('md5').update(x[6]).digest('hex'), x]);
-    const hashes = await Promise.all(hashPromises);
+  // generate hashes and connect them to messages
+  const hashPromises = decripted.map((x) => [crypto.createHash('md5').update(x[6]).digest('hex'), x]);
+  const hashes = await Promise.all(hashPromises);
 
-    const currentTime = Date.now();
-    // return message values with correct checksums or younger than 10 seconds for blochain latency
-    const resultPromisses = hashes.filter(
-      (x) => contractChecks.includes(x[0]) || currentTime - x[1][5] < 10000,
-    ).map((y) => y[1]);
-    // collect all results
-    result = await Promise.all(resultPromisses);
-  } catch (error) {
-    return error;
-  }
+  const currentTime = Date.now();
+  // return message values with correct checksums or younger than 10 seconds for blochain latency
+  const resultPromisses = hashes.filter(
+    (x) => contractChecks.includes(x[0]) || currentTime - x[1][5] < 10000,
+  ).map((y) => y[1]);
+  // collect all results
+  result = await Promise.all(resultPromisses);
   return result;
-}
-
-// return address balance
-export async function getBalance(address) {
-  try {
-    return await web3.eth.getBalance(address);
-  } catch (exceptionVar) {
-    return 0;
-  }
-}
-
-// decrypts PK
-export function getPK() {
-  try {
-    const CryptoJS = require('crypto-js');
-    const passwdKey = sessionStorage.getItem('passwdKey');
-    const pk = localStorage.getItem('privateKey');
-
-    const bytes = CryptoJS.AES.decrypt((pk.toString()), passwdKey);
-    return bytes.toString(CryptoJS.enc.Utf8);
-  } catch (exceptionVar) {
-    return 'No pk found';
-  }
 }

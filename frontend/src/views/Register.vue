@@ -1,6 +1,6 @@
 <template>
 <div class="input-body">
-<form class="input-form" @submit="checkForm">
+<form class="input-form" @submit="submitForm">
   <div class="input-header">
     <h1>Register</h1>
   </div>
@@ -39,13 +39,10 @@
 </template>
 
 <script>
+import { register } from '@/api/auth';
 
 export default {
   name: 'input-form',
-  authProvider: null,
-  created() {
-    this.authProvider = this.app.resolve('authProvider');
-  },
   data() {
     return {
       errors: [],
@@ -55,9 +52,9 @@ export default {
     };
   },
   methods: {
-    async checkForm(e) {
+    async submitForm(e) {
       try {
-        this.result = await this.authProvider.login(this.name, this.password);
+        this.result = await register(this.name, this.password);
       } catch (serverExceptions) {
         this.result = false;
         this.errors.push(serverExceptions);

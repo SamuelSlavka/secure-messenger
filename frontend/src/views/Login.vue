@@ -78,5 +78,5 @@ export default {
 </script>
 
 <style lang="scss">
- @import "@/styles/inputForm.scss";
+@import "@/styles/inputForm.scss";
 </style>

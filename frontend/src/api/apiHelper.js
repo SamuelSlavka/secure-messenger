@@ -7,12 +7,11 @@ const httpClient = axios.create({
 
 const getAuthToken = () => localStorage.getItem('token');
 
-const authInterceptor = (config) => {
+// puts login into reqest if possible
+httpClient.interceptors.config.use((config) => {
   // eslint-disable-next-line no-param-reassign
   config.headers.Authorization = getAuthToken();
   return config;
-};
-
-httpClient.interceptors.request.use(authInterceptor);
+});
 
 export default httpClient;
