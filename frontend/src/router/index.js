@@ -1,10 +1,9 @@
 import Vue from 'vue';
 import VueRouter from 'vue-router';
-import Home from '../views/Home.vue';
-import Login from '../views/Login.vue';
-import Logout from '../views/Logout.vue';
-import Protected from '../views/Protected.vue';
-import Register from '../views/Register.vue';
+import Home from '../components/Home.vue';
+import Login from '../components/Login.vue';
+import Protected from '../components/Protected.vue';
+import Register from '../components/Register.vue';
 
 Vue.use(VueRouter);
 
@@ -25,9 +24,9 @@ const routes = [
     component: Protected,
   },
   {
-    path: '/Logout',
+    path: '/',
     name: 'Logout',
-    component: Logout,
+    component: Home,
   },
   {
     path: '/Register',

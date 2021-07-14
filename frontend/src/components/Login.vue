@@ -35,13 +35,13 @@
   </div>
 </form>
   <p v-if="result">
-    <b id="result-message">Succesfully Registred</b>
+    <b id="result-message">Succesfully Logged in</b>
   </p>
   <p v-else-if="errors.length">
-    <b id="result-message">Failed to Register</b>
+    <b id="result-message">Failed to Login</b>
     <br />
     <ul>
-      <li v-for="(error, index) in errors" :key="error"> {{index}}.{{ error }}</li>
+      <li v-for="(error, index) in errors" :key="index"> {{index}}.{{ error }}</li>
     </ul>
   </p>
 </div>
@@ -50,14 +50,10 @@
 <script>
 export default {
   name: 'input-form',
-  created() {
-    this.authProvider = this.app.resolve('AuthProvider');
-  },
   data() {
     return {
       errors: [],
       name: null,
-      authProvider: null,
       password: null,
       privateKey: null,
       result: false,
@@ -66,7 +62,11 @@ export default {
   methods: {
     async checkForm(e) {
       try {
-        this.result = await this.authProvider.login(this.name, this.password);
+        const contents = {
+          url: '/login', type: 'post', data: { username: this.name, password: this.password },
+        };
+        // call vuex action to login
+        this.$store.dispatch('postLoginAsync', contents);
       } catch (serverExceptions) {
         this.result = false;
         this.errors.push(serverExceptions);

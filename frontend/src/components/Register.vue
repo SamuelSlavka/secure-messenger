@@ -39,8 +39,6 @@
 </template>
 
 <script>
-import { register } from '@/api/auth';
-
 export default {
   name: 'input-form',
   data() {
@@ -54,7 +52,11 @@ export default {
   methods: {
     async submitForm(e) {
       try {
-        this.result = await register(this.name, this.password);
+        const contents = {
+          url: '/register', type: 'post', data: { username: this.name, password: this.password },
+        };
+        // call vuex action to register
+        this.$store.dispatch('postRegisterAsync', contents);
       } catch (serverExceptions) {
         this.result = false;
         this.errors.push(serverExceptions);

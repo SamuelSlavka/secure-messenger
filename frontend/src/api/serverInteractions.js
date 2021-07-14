@@ -1,21 +1,21 @@
-import httpClient from '@/api/apiHelper';
+import axios from 'axios';
 
-const CONTRACT_INFO_END_POINT = '/info/contract';
-const CONTACTS_END_POINT = '/info/contacts';
-const MESSAGES_END_POINT = '/info/messages';
-const SET_MESSAGE_END_POINT = '/info/savemessage';
-const FOUNDS_END_POINT = '/info/founds';
+const CONTRACT_INFO_END_POINT = '/contract';
+const CONTACTS_END_POINT = '/contacts';
+const MESSAGES_END_POINT = '/messages';
+const SET_MESSAGE_END_POINT = '/savemessage';
+const FOUNDS_END_POINT = '/poor';
 
-const getContractInfo = () => httpClient.get(CONTRACT_INFO_END_POINT);
+const getContractInfo = () => axios.get(CONTRACT_INFO_END_POINT);
 
-const askForMoney = (address) => httpClient.post(FOUNDS_END_POINT, { address });
+const askForMoney = (address) => axios.post(FOUNDS_END_POINT, { address });
 
-const getContacts = (address, contactnum) => httpClient.post(
+const getContacts = (address, contactnum) => axios.post(
   CONTACTS_END_POINT,
   { address, contactnum },
 );
 
-const getMessages = (recvAddress, sendAddress, offset, count) => httpClient.post(
+const getMessages = (recvAddress, sendAddress, offset, count) => axios.post(
   MESSAGES_END_POINT,
   {
     recvAddress,
@@ -33,7 +33,7 @@ const setMessage = (
   timestamp,
   recvContents,
   sendContents,
-) => httpClient.post(
+) => axios.post(
   SET_MESSAGE_END_POINT,
   {
     recvAddress,

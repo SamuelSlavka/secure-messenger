@@ -1,15 +1,15 @@
-import httpClient from '@/api/apiHelper';
+import axios from 'axios';
 
-const PUBLIC_END_POINT = '/user/public';
-const GET_ADDRESS_END_POINT = '/user/address';
-const GET_REGISTERES_END_POINT = '/user/registered';
+const PUBLIC_END_POINT = '/public';
+const GET_ADDRESS_END_POINT = '/address';
+const GET_REGISTERES_END_POINT = '/registered';
 
-const getAddressFromName = (username) => httpClient.post(GET_ADDRESS_END_POINT, { username });
-const getPublicKey = (username, address) => httpClient.post(
+const getAddressFromName = (username) => axios.post(GET_ADDRESS_END_POINT, { username });
+const getPublicKey = (username, address) => axios.post(
   PUBLIC_END_POINT,
   { username, address },
 );
-const getIsUserRegistred = (username, address) => httpClient.post(
+const getIsUserRegistred = (username, address) => axios.post(
   GET_REGISTERES_END_POINT,
   { username, address },
 );
