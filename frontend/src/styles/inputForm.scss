@@ -59,4 +59,10 @@
       border: 2px solid #6064A6;
     }
   }
+  #result-message-success {
+    background-color: green;
+  }
+  #result-message-fail {
+    background-color: red;
+  }
 }

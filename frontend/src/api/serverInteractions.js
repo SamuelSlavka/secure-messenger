@@ -10,41 +10,11 @@ const getContractInfo = () => axios.get(CONTRACT_INFO_END_POINT);
 
 const askForMoney = (address) => axios.post(FOUNDS_END_POINT, { address });
 
-const getContacts = (address, contactnum) => axios.post(
-  CONTACTS_END_POINT,
-  { address, contactnum },
-);
+const getContacts = (...args) => axios.post(CONTACTS_END_POINT, { ...args });
 
-const getMessages = (recvAddress, sendAddress, offset, count) => axios.post(
-  MESSAGES_END_POINT,
-  {
-    recvAddress,
-    sendAddress,
-    offset,
-    count,
-  },
-);
+const getMessages = (...args) => axios.post(MESSAGES_END_POINT, { ...args });
 
-const setMessage = (
-  recvAddress,
-  sendAddress,
-  recvName,
-  sendName,
-  timestamp,
-  recvContents,
-  sendContents,
-) => axios.post(
-  SET_MESSAGE_END_POINT,
-  {
-    recvAddress,
-    sendAddress,
-    recvName,
-    sendName,
-    timestamp,
-    recvContents,
-    sendContents,
-  },
-);
+const setMessage = (...args) => axios.post(SET_MESSAGE_END_POINT, { ...args });
 
 export {
   getContractInfo,

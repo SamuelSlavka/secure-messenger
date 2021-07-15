@@ -19,7 +19,7 @@ const doAsync = async (store, {
     type: mutationTypes.PENDING,
     value: true,
   });
-  console.log(contents);
+
   try {
     let response;
     // post
@@ -27,7 +27,7 @@ const doAsync = async (store, {
       response = await axios({
         url: contents.url,
         baseURL: process.env.VUE_APP_BASE_URL,
-        method: 'post',
+        method: contents.type,
         headers: { Authorization: `Bearer ${token}` },
         data: contents.data,
       });
@@ -36,7 +36,7 @@ const doAsync = async (store, {
       response = await axios({
         url: contents.url,
         baseURL: process.env.VUE_APP_BASE_URL,
-        method: 'get',
+        method: contents.type,
         headers: { Authorization: `Bearer ${token}` },
       });
     }

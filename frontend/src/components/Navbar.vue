@@ -15,27 +15,41 @@
           <router-link to="/login" class="nav-link">Login</router-link>
           <router-link to="/register" class="nav-link">Register</router-link>
         </template>
-        <router-link v-else to="/logout" class="nav-link">Logout</router-link>
+        <router-link v-else to="/" v-on:click.native="logout" class="nav-link">Logout</router-link>
       </div>
     </div>
   </nav>
 </template>
 
 <script>
+import * as types from '@/api/mutation-types';
+
 export default {
   name: 'navbar',
+  computed: {
+    loggedIn() {
+      if (this.$store.state.postRegisterAsyncStatusCode !== undefined) {
+        return this.$store.state.postRegisterAsyncStatusCode === 200;
+      }
+      if (this.$store.state.postLoginAsyncStatusCode !== undefined) {
+        return this.$store.state.postLoginAsyncStatusCode === 200;
+      }
+      return false;
+    },
+  },
   data() {
     return {
       open: false,
-      loggedIn: false,
     };
   },
   methods: {
+    logout() {
+      sessionStorage.clear();
+      console.log(this.$store.state.postRegisterAsyncStatusCode);
+      this.$store.dispatch('clearAuthState', [types.POST_INFO_ASYNC, types.POST_REGISTER_ASYNC, types.POST_LOGIN_ASYNC]);
+    },
     toggle() {
       this.open = !this.open;
-    },
-    handleLogin(newState) {
-      this.loggedIn = newState;
     },
   },
 };
