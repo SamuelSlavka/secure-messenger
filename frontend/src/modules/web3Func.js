@@ -1,15 +1,15 @@
 import Web3 from 'web3';
-import getPK from './generalFunc';
+import { getPK } from './generalFunc';
 import { getPublicKey } from '../api/getUserInfo';
 import { getMessages, setMessage } from '../api/serverInteractions';
 
-// const provider = process.env.VUE_APP_ETH_PROVIDER;
+const provider = process.env.VUE_APP_ETH_PROVIDER;
 const EthCrypto = require('eth-crypto');
 const crypto = require('crypto');
 
 const web3 = new Web3();
 
-// web3.setProvider(new web3.providers.WebsocketProvider(provider));
+web3.setProvider(new web3.providers.WebsocketProvider(provider));
 
 // return address balance
 export const getBalance = (address) => web3.eth.getBalance(address);

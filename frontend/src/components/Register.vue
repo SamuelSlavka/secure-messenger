@@ -48,14 +48,14 @@ export default {
   name: 'register-form',
   computed: {
     showFail() {
-      if (this.$store.state.postRegisterAsyncStatusCode !== undefined) {
-        return this.$store.state.postRegisterAsyncStatusCode !== 200;
+      if (this.$store.state.auth.postRegisterAsyncStatusCode !== undefined) {
+        return this.$store.state.auth.postRegisterAsyncStatusCode !== 200;
       }
       return false;
     },
     showSuccess() {
-      if (this.$store.state.postRegisterAsyncStatusCode !== undefined) {
-        return this.$store.state.postRegisterAsyncStatusCode === 200;
+      if (this.$store.state.auth.postRegisterAsyncStatusCode !== undefined) {
+        return this.$store.state.auth.postRegisterAsyncStatusCode === 200;
       }
       return false;
     },
@@ -77,7 +77,7 @@ export default {
           data: { username: this.name, password: this.password },
         };
         // call vuex action to register
-        this.$store.dispatch('postRegisterAsync', contents);
+        this.$store.dispatch('auth/postRegisterAsync', contents);
       } catch (serverExceptions) {
         this.result = false;
         this.errors.push(serverExceptions);

@@ -1,5 +1,16 @@
 <template>
   <div class="protected">
-    <h1>Messages</h1>
+    <userlist />
   </div>
 </template>
+
+<script>
+import userlist from './UserList.vue';
+
+export default {
+  name: 'Home',
+  components: {
+    userlist,
+  },
+};
+</script>

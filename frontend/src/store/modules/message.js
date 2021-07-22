@@ -1,38 +1,30 @@
 import Vue from 'vue';
-import Vuex from 'vuex';
-import doAsync from '@/api/async-util';
-import * as types from '@/api/mutation-types';
+import * as types from '@/store/mutation-types';
+import { doAsync } from '@/api/async-util';
 import { createAccount } from '@/modules/web3Func';
-
-Vue.use(Vuex);
-
-const CryptoJS = require('crypto-js');
+import { addMutations } from '@/modules/generalFunc';
 
 const state = {
+  info: {
+    abi: null,
+    contractAddress: null,
+    userAddress: null,
+    userName: null,
+  },
 };
 
-const mutations = {
+const getters = {
+  getAbi: () => state.info.username,
+  getContractAddress: () => state.info.contractAddress,
+  getUserAddess: () => state.info.userAddress,
+  getUserName: () => state.info.userName,
 };
 
-// dynamically add state mutations
-Object.keys(types).forEach((type) => {
-  mutations[types[type].BASE] = (newState, payload) => {
-    switch (payload.type) {
-      case types[type].PENDING:
-        return Vue.set(newState, types[type].loadingKey, payload.value);
+const mutations = addMutations(types, Vue);
 
-      case types[type].SUCCESS:
-        Vue.set(newState, types[type].statusCode, payload.statusCode);
-        return Vue.set(newState, types[type].stateKey, payload.data);
+// const getTitleOnly = (response) => response.data.title;
 
-      // failiure
-      default:
-        return Vue.set(newState, types[type].statusCode, payload.statusCode);
-    }
-  };
-});
-
-const getTitleOnly = (response) => response.data.title;
+const CryptoJS = require('crypto-js');
 
 const actions = {
   clearAuthState(store, cleanTypes) {
@@ -46,14 +38,6 @@ const actions = {
         value: null,
       });
     });
-  },
-
-  getAsync(store, contents) {
-    return doAsync(
-      store, {
-        contents, mutationTypes: types.GET_INFO_ASYNC, callback: getTitleOnly,
-      },
-    );
   },
 
   postAsync(store, contents) {
@@ -127,8 +111,10 @@ const actions = {
   },
 };
 
-export default new Vuex.Store({
+export default {
+  namespaced: true,
   state,
-  mutations,
+  getters,
   actions,
-});
+  mutations,
+};

@@ -22,17 +22,17 @@
 </template>
 
 <script>
-import * as types from '@/api/mutation-types';
+import * as types from '@/store/mutation-types';
 
 export default {
   name: 'navbar',
   computed: {
     loggedIn() {
-      if (this.$store.state.postRegisterAsyncStatusCode !== undefined) {
-        return this.$store.state.postRegisterAsyncStatusCode === 200;
+      if (this.$store.state.auth.postRegisterAsyncStatusCode !== undefined) {
+        return this.$store.state.auth.postRegisterAsyncStatusCode === 200;
       }
-      if (this.$store.state.postLoginAsyncStatusCode !== undefined) {
-        return this.$store.state.postLoginAsyncStatusCode === 200;
+      if (this.$store.state.auth.postLoginAsyncStatusCode !== undefined) {
+        return this.$store.state.auth.postLoginAsyncStatusCode === 200;
       }
       return false;
     },
@@ -45,8 +45,8 @@ export default {
   methods: {
     logout() {
       sessionStorage.clear();
-      console.log(this.$store.state.postRegisterAsyncStatusCode);
-      this.$store.dispatch('clearAuthState', [types.POST_INFO_ASYNC, types.POST_REGISTER_ASYNC, types.POST_LOGIN_ASYNC]);
+      console.log(types);
+      this.$store.dispatch('auth/clearAuthState', [types.POST_INFO_ASYNC, types.POST_REGISTER_ASYNC, types.POST_LOGIN_ASYNC]);
     },
     toggle() {
       this.open = !this.open;

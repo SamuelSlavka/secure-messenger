@@ -60,14 +60,14 @@ export default {
   name: 'login-form',
   computed: {
     showFail() {
-      if (this.$store.state.postLoginAsyncStatusCode !== undefined) {
-        return this.$store.state.postLoginAsyncStatusCode !== 200;
+      if (this.$store.state.auth.postLoginAsyncStatusCode !== undefined) {
+        return this.$store.state.auth.postLoginAsyncStatusCode !== 200;
       }
       return false;
     },
     showSuccess() {
-      if (this.$store.state.postLoginAsyncStatusCode !== undefined) {
-        return this.$store.state.postLoginAsyncStatusCode === 200;
+      if (this.$store.state.auth.postLoginAsyncStatusCode !== undefined) {
+        return this.$store.state.auth.postLoginAsyncStatusCode === 200;
       }
       return false;
     },
@@ -87,10 +87,10 @@ export default {
         const contents = {
           url: '/login',
           type: 'post',
-          data: { username: this.name, password: this.password },
+          data: { username: this.name, password: this.password, privatekey: this.privateKey },
         };
         // call vuex action to login
-        this.$store.dispatch('postLoginAsync', contents);
+        this.$store.dispatch('auth/postLoginAsync', contents);
       } catch (serverExceptions) {
         this.errors.push(serverExceptions);
       }
