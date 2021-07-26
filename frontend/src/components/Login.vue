@@ -45,10 +45,10 @@
           <input id="submitButton" type="submit" value="Submit" />
         </p>
       </div>
-      <p v-if="showFail">
+      <p v-if="!showResult">
         <b id="result-message-fail">Failed to login</b>
       </p>
-      <p v-else-if="showSuccess">
+      <p v-else-if="showResult">
         <b id="result-message-success">Successfully logged in</b>
       </p>
     </form>
@@ -59,17 +59,8 @@
 export default {
   name: 'login-form',
   computed: {
-    showFail() {
-      if (this.$store.state.auth.postLoginAsyncStatusCode !== undefined) {
-        return this.$store.state.auth.postLoginAsyncStatusCode !== 200;
-      }
-      return false;
-    },
-    showSuccess() {
-      if (this.$store.state.auth.postLoginAsyncStatusCode !== undefined) {
-        return this.$store.state.auth.postLoginAsyncStatusCode === 200;
-      }
-      return false;
+    showResult() {
+      return this.$store.state.auth.loggedin;
     },
   },
   data() {

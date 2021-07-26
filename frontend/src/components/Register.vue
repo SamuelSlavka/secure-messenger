@@ -33,12 +33,14 @@
           <input id="submitButton" type="submit" value="Submit" />
         </p>
       </div>
-      <p v-if="showFail">
-        <b id="result-message-fail">Failed to register</b>
-      </p>
-      <p v-else-if="showSuccess">
-        <b id="result-message-success">Successfully registered</b>
-      </p>
+      <template v-if="showResult !== undefined">
+        <p v-if="!showResult">
+          <b id="result-message-fail">Failed to register</b>
+        </p>
+        <p v-else-if="showResult">
+          <b id="result-message-success">Successfully registered</b>
+        </p>
+      </template>
     </form>
   </div>
 </template>
@@ -47,17 +49,8 @@
 export default {
   name: 'register-form',
   computed: {
-    showFail() {
-      if (this.$store.state.auth.postRegisterAsyncStatusCode !== undefined) {
-        return this.$store.state.auth.postRegisterAsyncStatusCode !== 200;
-      }
-      return false;
-    },
-    showSuccess() {
-      if (this.$store.state.auth.postRegisterAsyncStatusCode !== undefined) {
-        return this.$store.state.auth.postRegisterAsyncStatusCode === 200;
-      }
-      return false;
+    showResult() {
+      return this.$store.state.auth.loggedin;
     },
   },
   data() {

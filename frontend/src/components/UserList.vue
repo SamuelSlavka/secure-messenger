@@ -1,74 +1,86 @@
 <template>
-<div class="user-list-container">
-  <div class="nav-list">
-    <div class="nav">
-      <div class="nav-item">
-        <a disabled><h3>Contacts</h3></a>
+  <div class="user-list-container">
+    <div class="nav-list">
+      <div class="nav">
+        <div class="nav-item">
+          <a disabled><h3>Contacts</h3></a>
+        </div>
+        <div class="nav-item">
+          <a disabled className="accountInfo">
+            Your address:
+            {{ address }}
+          </a>
+        </div>
+        <div class="nav-item">
+          <a disabled className="accountInfo">
+            Your balance:
+            {{ balance }}
+          </a>
+        </div>
       </div>
-      <div class="nav-item">
-        <a disabled className="accountInfo">
-          Your address:
-          {{ address }}
-        </a>
-      </div>
-      <div class="nav-item">
-        <a disabled className="accountInfo">
-          Your balance:
-          {{ balance }}
-        </a>
+      <div class="nav">
+        <div class="nav-item">
+          <a id="show-pk" v-on:click="decryptPK">Show PK</a>
+        </div>
+        <div class="nav-item">
+          <a eventKey="link-2" v-on:click="handlePoor">Reqest founds</a>
+        </div>
+        <div class="nav-item">
+          <a eventKey="link-3" v-on:click="handleShowCreate"
+            >Create a new Contact</a
+          >
+        </div>
       </div>
     </div>
-    <div class="nav">
-      <div class="nav-item">
-        <a eventKey="link-1" onClick={handleShowPK}>Show PK</a>
-      </div>
-      <div class="nav-item">
-        <a eventKey="link-2" onClick={handlePoor}>Reqest founds</a>
-      </div>
-      <div class="nav-item">
-        <a eventKey="link-3" onClick={handleShowCreate}>Create a new Contact</a>
+    <div v-if="contactsFinished" class="contact-list">
+      <div
+        v-for="contact in contactsData"
+        :key="contact.address"
+        class="contact-item"
+      >
+        {{ contact }}
       </div>
     </div>
-  </div>
-  <div v-if="contactsFinished" class="contact-list">
-    <div v-for="contact in contactsData" :key="contact.address" class="contact-item">
-      {{ contact }}
-    </div>
-  </div>
-  <div v-for="error in errors" :key="error.data" class="contact-item">
+    <div v-for="error in errors" :key="error.data" class="contact-item">
       {{ error }}
     </div>
-</div>
+    <!-- use the modal component, pass in the prop -->
+    <modal v-if="showPK" @close="hidePK">
+      <h3 slot="header">Your privatekey:</h3>
+      <p slot="body">{{ privatekey }}</p>
+    </modal>
+  </div>
 </template>
 
 <script>
+import modal from '@/components/Modal.vue';
+import { getPK } from '@/modules/generalFunc';
+
 export default {
   name: 'userlist',
-  components: {},
+  components: {
+    modal,
+  },
   computed: {
     contactsFinished() {
-      if (this.$store.state.users.postContactsAsyncStatusCode !== undefined) {
-        return this.$store.state.users.postContactsAsyncStatusCode === 200;
-      }
-      return false;
+      return this.$store.state.users.postContactsAsyncStatusCode === 200;
     },
     contactsData() {
-      if (this.$store.state.users.postContactsAsyncData !== undefined) {
-        return this.$store.state.users.postContactsAsyncData === 200;
-      }
-      return [];
+      const data = this.$store.state.users.postContactsAsyncData;
+      return data !== undefined ? data : [];
     },
   },
   methods: {
-    handleShowPK() {
-
+    decryptPK() {
+      this.privatekey = getPK();
+      this.showPK = true;
     },
-    handlePoor() {
-
+    hidePK() {
+      this.privatekey = null;
+      this.showPK = false;
     },
-    handleShowCreate() {
-
-    },
+    handlePoor() {},
+    handleShowCreate() {},
     async refreshData() {
       this.errors = [];
       try {
@@ -76,7 +88,7 @@ export default {
         this.username = this.$store.getters['auth/getUsername'];
 
         this.$store.dispatch('auth/getUserBalance', { address: this.address });
-        this.balance = this.$store.state.auth.user.balance;
+        // this.balance = this.$store.state.auth.user.balance;
 
         const contents = {
           url: '/contacts',
@@ -98,13 +110,15 @@ export default {
       contactList: [],
       timer: null,
       errors: [],
+      showPK: false,
+      privatekey: null,
     };
   },
   mounted() {
     this.refreshData();
     this.timer = setInterval(() => {
       this.refreshData();
-    }, 5000);
+    }, 20000);
   },
   beforeDestroy() {
     clearInterval(this.timer);
@@ -113,5 +127,4 @@ export default {
 </script>
 
 <style lang="scss">
-
 </style>

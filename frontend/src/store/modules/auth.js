@@ -6,6 +6,8 @@ import { createAccount, getBalance } from '@/modules/web3Func';
 import { addMutations } from '@/modules/generalFunc';
 
 const state = {
+  loggedin: undefined,
+  currentpage: 'userlist',
   user: {
     username: sessionStorage.getItem('username'),
     password: sessionStorage.getItem('password'),
@@ -16,6 +18,8 @@ const state = {
 };
 
 const getters = {
+  getCurrentPage: (state) => state.currentpage,
+  getLoggedin: (state) => state.loggedin,
   getUsername: (state) => state.user.username,
   getAddress: (state) => state.user.address,
   getPublicKey: (state) => state.user.publickey,
@@ -23,30 +27,42 @@ const getters = {
 };
 
 const mutations = addMutations(types, Vue);
+mutations.SET_CURRENTPAGE = (state, value) => {
+  state.currentpage = value;
+};
+
+mutations.SET_LOGGEDIN = (state, value) => {
+  state.loggedin = value;
+};
+
 mutations.SET_BALANCE = (state, balance) => {
   state.user.balance = balance;
 };
-mutations.SET_USERNAME = (state, username) => {
-  state.user.username = username;
-  sessionStorage.setItem('username', username);
-};
-mutations.SET_ADDRESS = (state, address) => {
-  state.user.address = address;
-  sessionStorage.setItem('address', address);
-};
-mutations.SET_PASSWORD = (state, password) => {
-  state.user.password = password;
-  sessionStorage.setItem('password', password);
-};
-mutations.SET_PUBLICKEY = (state, publickey) => {
-  state.user.publickey = publickey;
-  sessionStorage.setItem('publickey', publickey);
+
+mutations.SET_USER = (state, params) => {
+  console.log(params);
+  state.loggedin = params.loggedin;
+  state.user = params.user;
+  sessionStorage.setItem('username', params.user.username);
+  sessionStorage.setItem('address', params.user.address);
+  sessionStorage.setItem('publickey', params.user.publickey);
+  sessionStorage.setItem('password', params.user.password);
 };
 
 const CryptoJS = require('crypto-js');
 
 const actions = {
   clearAuthState(store, cleanTypes) {
+    const newuser = {
+      address: null,
+      username: null,
+      password: null,
+      publicKey: null,
+    };
+    // clear vuex
+    store.commit('SET_USER', { loggedin: undefined, user: newuser });
+    // clear session storage
+    sessionStorage.clear();
     cleanTypes.forEach((type) => {
       store.commit(type.BASE, {
         type: type.SUCCESS,
@@ -99,11 +115,14 @@ const actions = {
         },
       );
 
-      // stores encripterd private key in local storage
-      store.commit('SET_ADDRESS', address);
-      store.commit('SET_USERNAME', contents.data.username);
-      store.commit('SET_PASSWORD', contents.data.password);
-      store.commit('SET_PUBLICKEY', store.state.postLoginAsyncData?.data?.publicKey);
+      const newuser = {
+        address,
+        username: contents.data.username,
+        password: contents.data.password,
+        publicKey: store.state.postLoginAsyncData?.data?.publicKey,
+      };
+      // save results to vuex
+      store.commit('SET_USER', { loggedin: true, user: newuser });
 
       localStorage.setItem('privateKey', (CryptoJS.AES.encrypt(contents.data.privateKey, contents.data.password)));
     }
@@ -135,10 +154,15 @@ const actions = {
         },
       );
 
-      store.commit('SET_ADDRESS', acc.address);
-      store.commit('SET_USERNAME', contents.data.username);
-      store.commit('SET_PASSWORD', contents.data.password);
-      store.commit('SET_PUBLICKEY', acc.publicKey);
+      const newuser = {
+        address: acc.address,
+        username: contents.data.username,
+        password: contents.data.password,
+        publicKey: acc.publicKey,
+      };
+
+      // save results to vuex
+      store.commit('SET_USER', { loggedin: true, user: newuser });
 
       // stores encripterd private key in local storage
       localStorage.setItem('privateKey', (CryptoJS.AES.encrypt(acc.privateKey, contents.data.password)));

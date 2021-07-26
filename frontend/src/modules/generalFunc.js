@@ -2,10 +2,9 @@ const CryptoJS = require('crypto-js');
 
 // decrypts PK
 export function getPK() {
-  const passwdKey = sessionStorage.getItem('passwdKey');
+  const passwdKey = sessionStorage.getItem('password');
 
   const pk = localStorage.getItem('privateKey');
-
   const bytes = CryptoJS.AES.decrypt((pk.toString()), passwdKey);
   return bytes.toString(CryptoJS.enc.Utf8);
 }

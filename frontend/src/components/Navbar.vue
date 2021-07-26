@@ -26,26 +26,18 @@ import * as types from '@/store/mutation-types';
 
 export default {
   name: 'navbar',
-  computed: {
-    loggedIn() {
-      if (this.$store.state.auth.postRegisterAsyncStatusCode !== undefined) {
-        return this.$store.state.auth.postRegisterAsyncStatusCode === 200;
-      }
-      if (this.$store.state.auth.postLoginAsyncStatusCode !== undefined) {
-        return this.$store.state.auth.postLoginAsyncStatusCode === 200;
-      }
-      return false;
-    },
-  },
   data() {
     return {
       open: false,
     };
   },
+  computed: {
+    loggedIn() {
+      return this.$store.state.auth.loggedin;
+    },
+  },
   methods: {
     logout() {
-      sessionStorage.clear();
-      console.log(types);
       this.$store.dispatch('auth/clearAuthState', [types.POST_INFO_ASYNC, types.POST_REGISTER_ASYNC, types.POST_LOGIN_ASYNC]);
     },
     toggle() {
