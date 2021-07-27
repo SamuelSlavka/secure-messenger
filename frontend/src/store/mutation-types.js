@@ -10,10 +10,11 @@ const createAsyncMutation = (type) => ({
   stateKey: `${_.camelCase(type)}Data`,
 });
 
-export const POST_INFO_ASYNC = createAsyncMutation('POST_INFO_ASYNC');
-export const GET_INFO_ASYNC = createAsyncMutation('GET_INFO_ASYNC');
-export const POST_REGISTER_ASYNC = createAsyncMutation('POST_REGISTER_ASYNC');
-export const POST_LOGIN_ASYNC = createAsyncMutation('POST_LOGIN_ASYNC');
-export const POST_CONTACTS_ASYNC = createAsyncMutation('POST_CONTACTS_ASYNC');
-export const POST_MESSAGES_ASYNC = createAsyncMutation('POST_MESSAGES_ASYNC');
-export const GET_BALANCE_ASYNC = createAsyncMutation('GET_BALANCE_ASYNC');
+// auth types
+export const POST_INFO_ACTION = createAsyncMutation('POST_INFO_ACTION');
+export const REGISTER_ACTION = createAsyncMutation('REGISTER_ACTION');
+export const LOGIN_ACTION = createAsyncMutation('LOGIN_ACTION');
+// user types
+export const GET_CONTACTS_ACTION = createAsyncMutation('GET_CONTACTS_ACTION');
+export const GET_BALANCE_ACTION = createAsyncMutation('GET_BALANCE_ACTION');
+export const ADD_FOUNDS_ACTION = createAsyncMutation('ADD_FOUNDS_ACTION');

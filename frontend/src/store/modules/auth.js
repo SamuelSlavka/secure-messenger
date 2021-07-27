@@ -1,51 +1,45 @@
 /* eslint-disable no-shadow */
 import Vue from 'vue';
 import * as types from '@/store/mutation-types';
-import { doAsync, doWeb3Async } from '@/api/async-util';
-import { createAccount, getBalance } from '@/modules/web3Func';
+import { doAsync } from '@/api/async-util';
+import { createAccount } from '@/modules/web3Func';
 import { addMutations } from '@/modules/generalFunc';
 
 const state = {
-  loggedin: undefined,
   currentpage: 'userlist',
+  token: sessionStorage.getItem('token'),
   user: {
     username: sessionStorage.getItem('username'),
     password: sessionStorage.getItem('password'),
     address: sessionStorage.getItem('address'),
-    publickey: sessionStorage.getItem('publickey'),
-    balance: 0,
+    publicKey: sessionStorage.getItem('publicKey'),
   },
 };
 
 const getters = {
+  getToken: (state) => state.token,
   getCurrentPage: (state) => state.currentpage,
-  getLoggedin: (state) => state.loggedin,
   getUsername: (state) => state.user.username,
   getAddress: (state) => state.user.address,
-  getPublicKey: (state) => state.user.publickey,
+  getPublicKey: (state) => state.user.publicKey,
   getPassword: (state) => state.user.password,
 };
 
+// general action mutation types
 const mutations = addMutations(types, Vue);
+// set current page
 mutations.SET_CURRENTPAGE = (state, value) => {
   state.currentpage = value;
 };
-
-mutations.SET_LOGGEDIN = (state, value) => {
-  state.loggedin = value;
-};
-
-mutations.SET_BALANCE = (state, balance) => {
-  state.user.balance = balance;
-};
-
+// creates user in vuex
 mutations.SET_USER = (state, params) => {
-  console.log(params);
-  state.loggedin = params.loggedin;
+  state.token = params.token;
+  sessionStorage.setItem('token', params.token);
+
   state.user = params.user;
   sessionStorage.setItem('username', params.user.username);
   sessionStorage.setItem('address', params.user.address);
-  sessionStorage.setItem('publickey', params.user.publickey);
+  sessionStorage.setItem('publicKey', params.user.publicKey);
   sessionStorage.setItem('password', params.user.password);
 };
 
@@ -60,7 +54,7 @@ const actions = {
       publicKey: null,
     };
     // clear vuex
-    store.commit('SET_USER', { loggedin: undefined, user: newuser });
+    store.commit('SET_USER', { token: undefined, user: newuser });
     // clear session storage
     sessionStorage.clear();
     cleanTypes.forEach((type) => {
@@ -75,43 +69,38 @@ const actions = {
     });
   },
 
-  // get balance action
-  async getUserBalance(store) {
-    await doWeb3Async(store, {
-      contents: { data: store.state.user.address, method: getBalance },
-      mutationTypes: types.GET_BALANCE_ASYNC,
-    });
-    store.commit('SET_BALANCE', store.state.getBalanceAsyncData);
-  },
-
   postAsync(store, contents) {
-    const token = sessionStorage.getItem('token');
+    const token = store.state.getToken();
     return doAsync(
       store, {
-        contents, token, mutationTypes: types.POST_INFO_ASYNC,
+        contents, token, mutationTypes: types.POST_INFO_ACTION,
       },
     );
   },
 
   // login action
-  async postLoginAsync(store, contents) {
-    let token = sessionStorage.getItem('token');
+  async loginAction(store, data) {
+    let token = store.state.getToken();
 
+    const contents = {
+      url: '/login',
+      type: 'post',
+      data,
+    };
     await doAsync(
       store, {
-        contents, token, mutationTypes: types.POST_INFO_ASYNC,
+        contents, token, mutationTypes: types.POST_INFO_ACTION,
       },
     );
     // add items to session storage
-    if (store.state.postInfoAsyncData?.data?.access_token) {
-      sessionStorage.setItem('token', store.state.postInfoAsyncData.data.access_token);
-      token = sessionStorage.getItem('token');
+    if (store.state.postInfoActionData?.data?.access_token) {
+      token = store.state.postInfoActionData.data.access_token;
 
       const addressContents = { url: '/address', type: 'post', data: { username: contents.data.username } };
       // save account address in server
       const address = await doAsync(
         store, {
-          contents: addressContents, token, mutationTypes: types.POST_LOGIN_ASYNC,
+          contents: addressContents, token, mutationTypes: types.LOGIN_ACTION,
         },
       );
 
@@ -119,10 +108,10 @@ const actions = {
         address,
         username: contents.data.username,
         password: contents.data.password,
-        publicKey: store.state.postLoginAsyncData?.data?.publicKey,
+        publicKey: store.state.loginActionData?.data?.publicKey,
       };
       // save results to vuex
-      store.commit('SET_USER', { loggedin: true, user: newuser });
+      store.commit('SET_USER', { token, user: newuser });
 
       localStorage.setItem('privateKey', (CryptoJS.AES.encrypt(contents.data.privateKey, contents.data.password)));
     }
@@ -131,26 +120,30 @@ const actions = {
   },
 
   // register action
-  async postRegisterAsync(store, contents) {
+  async registerAction(store, data) {
     let token = sessionStorage.getItem('token');
+    const contents = {
+      url: '/register',
+      type: 'post',
+      data,
+    };
     await doAsync(
       store, {
-        contents, token, mutationTypes: types.POST_INFO_ASYNC,
+        contents, token, mutationTypes: types.POST_INFO_ACTION,
       },
     );
 
     // add items to session storage
-    if (store.state.postInfoAsyncData?.data?.access_token) {
-      sessionStorage.setItem('token', store.state.postInfoAsyncData.data.access_token);
-      token = sessionStorage.getItem('token');
-      const acc = await createAccount();
+    if (store.state.postInfoActionData?.data?.access_token) {
+      token = store.state.postInfoActionData.data.access_token;
 
+      const acc = await createAccount();
       const addressContents = { url: '/saveaddress', type: 'post', data: { address: acc.address, public: acc.publicKey } };
 
       // save account address in server
       await doAsync(
         store, {
-          contents: addressContents, token, mutationTypes: types.POST_REGISTER_ASYNC,
+          contents: addressContents, token, mutationTypes: types.REGISTER_ACTION,
         },
       );
 
@@ -162,7 +155,7 @@ const actions = {
       };
 
       // save results to vuex
-      store.commit('SET_USER', { loggedin: true, user: newuser });
+      store.commit('SET_USER', { token, user: newuser });
 
       // stores encripterd private key in local storage
       localStorage.setItem('privateKey', (CryptoJS.AES.encrypt(acc.privateKey, contents.data.password)));

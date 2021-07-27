@@ -26,20 +26,24 @@ import * as types from '@/store/mutation-types';
 
 export default {
   name: 'navbar',
+
   data() {
     return {
       open: false,
     };
   },
+
   computed: {
     loggedIn() {
-      return this.$store.state.auth.loggedin;
+      return this.$store.state.auth.token;
     },
   },
+
   methods: {
     logout() {
-      this.$store.dispatch('auth/clearAuthState', [types.POST_INFO_ASYNC, types.POST_REGISTER_ASYNC, types.POST_LOGIN_ASYNC]);
+      this.$store.dispatch('auth/clearAuthState', [types.POST_INFO_ACTION, types.REGISTER_ACTION, types.LOGIN_ACTION]);
     },
+
     toggle() {
       this.open = !this.open;
     },

@@ -58,11 +58,13 @@
 <script>
 export default {
   name: 'login-form',
+
   computed: {
     showResult() {
       return this.$store.state.auth.loggedin;
     },
   },
+
   data() {
     return {
       errors: [],
@@ -72,16 +74,15 @@ export default {
       result: false,
     };
   },
+
   methods: {
     async checkForm(e) {
       try {
-        const contents = {
-          url: '/login',
-          type: 'post',
-          data: { username: this.name, password: this.password, privatekey: this.privateKey },
-        };
         // call vuex action to login
-        this.$store.dispatch('auth/postLoginAsync', contents);
+        this.$store.dispatch(
+          'auth/loginAction',
+          { username: this.name, password: this.password, privatekey: this.privateKey },
+        );
       } catch (serverExceptions) {
         this.errors.push(serverExceptions);
       }

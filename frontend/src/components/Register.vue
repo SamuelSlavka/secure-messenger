@@ -48,11 +48,13 @@
 <script>
 export default {
   name: 'register-form',
+
   computed: {
     showResult() {
       return this.$store.state.auth.loggedin;
     },
   },
+
   data() {
     return {
       errors: [],
@@ -61,16 +63,15 @@ export default {
       result: false,
     };
   },
+
   methods: {
     async submitForm(e) {
       try {
-        const contents = {
-          url: '/register',
-          type: 'post',
-          data: { username: this.name, password: this.password },
-        };
         // call vuex action to register
-        this.$store.dispatch('auth/postRegisterAsync', contents);
+        this.$store.dispatch(
+          'auth/registerAction',
+          { username: this.name, password: this.password },
+        );
       } catch (serverExceptions) {
         this.result = false;
         this.errors.push(serverExceptions);

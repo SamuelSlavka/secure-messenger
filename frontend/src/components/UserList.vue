@@ -44,7 +44,6 @@
     <div v-for="error in errors" :key="error.data" class="contact-item">
       {{ error }}
     </div>
-    <!-- use the modal component, pass in the prop -->
     <modal v-if="showPK" @close="hidePK">
       <h3 slot="header">Your privatekey:</h3>
       <p slot="body">{{ privatekey }}</p>
@@ -63,11 +62,14 @@ export default {
   },
   computed: {
     contactsFinished() {
-      return this.$store.state.users.postContactsAsyncStatusCode === 200;
+      return (
+        this.$store.state.users.getContactsActionStatusCode === 200
+        && this.contactsData !== []
+      );
     },
     contactsData() {
-      const data = this.$store.state.users.postContactsAsyncData;
-      return data !== undefined ? data : [];
+      const { data } = this.$store.state.users.getContactsActionData;
+      return data.result !== undefined ? data : [];
     },
   },
   methods: {
@@ -75,38 +77,43 @@ export default {
       this.privatekey = getPK();
       this.showPK = true;
     },
+
     hidePK() {
       this.privatekey = null;
       this.showPK = false;
     },
-    handlePoor() {},
+
+    // add founds to wallet
+    handlePoor() {
+      this.$store.dispatch('users/addFoundsAction', { address: this.address });
+    },
+
+    // create new contact
     handleShowCreate() {},
+
+    // periodically refresh contacts and balance
     async refreshData() {
       this.errors = [];
       try {
-        this.address = this.$store.getters['auth/getAddress'];
-        this.username = this.$store.getters['auth/getUsername'];
+        this.$store.dispatch('users/getBalanceAction', { address: this.address });
+        this.balance = this.$store.getters['users/getBalance'];
 
-        this.$store.dispatch('auth/getUserBalance', { address: this.address });
-        // this.balance = this.$store.state.auth.user.balance;
-
-        const contents = {
-          url: '/contacts',
-          type: 'post',
-          data: { address: this.address, number: this.contactList.length },
-        };
         // call vuex action to login
-        this.$store.dispatch('users/postContactsAsync', contents);
+        this.$store.dispatch(
+          'users/getContactsAction',
+          { address: this.address, number: this.contactList.length },
+        );
       } catch (serverExceptions) {
         this.errors.push(serverExceptions);
       }
     },
   },
+
   data() {
     return {
       address: this.$store.getters['auth/getAddress'],
       username: this.$store.getters['auth/getUsername'],
-      balance: this.$store.state.auth.user.balance,
+      balance: this.$store.getters['users/getBalance'],
       contactList: [],
       timer: null,
       errors: [],
@@ -118,7 +125,7 @@ export default {
     this.refreshData();
     this.timer = setInterval(() => {
       this.refreshData();
-    }, 20000);
+    }, 10000);
   },
   beforeDestroy() {
     clearInterval(this.timer);
