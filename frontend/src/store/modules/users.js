@@ -7,6 +7,7 @@ import { addMutations } from '@/modules/generalFunc';
 
 const state = {
   balance: 0,
+  createdContacts: [],
   info: {
     abi: null,
     contractAddress: null,

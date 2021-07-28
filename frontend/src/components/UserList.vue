@@ -26,7 +26,7 @@
           <a eventKey="link-2" v-on:click="handlePoor">Reqest founds</a>
         </div>
         <div class="nav-item">
-          <a eventKey="link-3" v-on:click="handleShowCreate"
+          <a eventKey="link-3" v-on:click="showCreateModal = true"
             >Create a new Contact</a
           >
         </div>
@@ -44,6 +44,23 @@
     <div v-for="error in errors" :key="error.data" class="contact-item">
       {{ error }}
     </div>
+    <modal v-if="showCreateModal">
+      <h3 slot="header">Create new Contact:</h3>
+      <div slot="body">
+        <p>
+          Input <b>username</b>, <b>address</b> or <b>founding address</b>, and select input type
+        </p>
+        <input v-model="message" placeholder="Input contact identification">
+        <select v-model="selected">
+          <option>username</option>
+          <option>address</option>
+          <option>founding</option>
+        </select>
+      </div>
+      <button slot="footer" class="modal-default-button" @click="handleShowCreate">
+        Submit
+      </button>
+    </modal>
     <modal v-if="showPK" @close="hidePK">
       <h3 slot="header">Your privatekey:</h3>
       <p slot="body">{{ privatekey }}</p>
@@ -89,7 +106,9 @@ export default {
     },
 
     // create new contact
-    handleShowCreate() {},
+    handleShowCreate() {
+      this.showCreateModal = false;
+    },
 
     // periodically refresh contacts and balance
     async refreshData() {
@@ -118,7 +137,10 @@ export default {
       timer: null,
       errors: [],
       showPK: false,
+      showCreateModal: false,
       privatekey: null,
+      selected: 'username',
+      message: '',
     };
   },
   mounted() {
@@ -134,4 +156,5 @@ export default {
 </script>
 
 <style lang="scss">
+
 </style>

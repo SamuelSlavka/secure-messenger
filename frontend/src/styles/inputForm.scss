@@ -12,9 +12,10 @@
   align-items: center;
 
   .input-header {
-    box-shadow: 0 -4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
-    border-top-left-radius: 5px;
-    border-top-right-radius: 5px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.33);
+    // box-shadow: 0 -4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+    border-top-left-radius: 2px;
+    border-top-right-radius: 2px;
     background-color: #2A3659;
     color: white;
     width: 80%;
@@ -25,10 +26,10 @@
   }
 
   .input-border {
-    box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.33);
     background-color: white;
-    border-bottom-left-radius: 5px;
-    border-bottom-right-radius: 5px;
+    border-bottom-left-radius: 2px;
+    border-bottom-right-radius: 2px;
     padding: 20px;
     margin: 0;
     display: flex;

@@ -18,7 +18,7 @@
         <div class="modal-footer">
           <slot name="footer">
             <button class="modal-default-button" @click="$emit('close')">
-              OK
+              Hide
             </button>
           </slot>
         </div>
@@ -34,4 +34,41 @@ export default {
 </script>
 
 <style lang="scss">
+.modal-mask {
+  position: fixed;
+  z-index: 9998;
+  top: 4em;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.modal-container {
+  word-wrap: break-word;
+  width: 75%;
+  margin: 0px auto;
+  padding: 3em 2em;
+  background-color: #fff;
+  border-radius: 2px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.33);
+  font-family: Helvetica, Arial, sans-serif;
+}
+
+.modal-header h3 {
+  margin-top: 0;
+  color: #2A3659;;
+}
+
+.modal-body {
+  margin: 20px 0;
+}
+
+.modal-default-button {
+  float: right;
+}
+@media screen and (min-width: 600px) {
+  .modal-container {
+      width: 40em;
+  }
+}
 </style>
